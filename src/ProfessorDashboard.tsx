@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/src/utils/supabase/client';
-import { Lock, UserCircle, ArrowRight } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { PESTELWorksheet, McKinseyWorksheet, VRIOAnalysisTable } from './components/Worksheets';
 
@@ -32,11 +32,12 @@ export default function ProfessorDashboard() {
 
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-6">
-        <div className="w-full max-w-sm space-y-10">
-            <div className="text-center space-y-4">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans">
+        <div className="w-full max-w-sm bg-white p-12 rounded-3xl shadow-sm border border-slate-100 text-center space-y-8">
+            <div className="space-y-4">
                 <img src="https://i.ibb.co/FqgQzNPw/LOGO-BLEU.png" alt="SDP Suite Logo" className="w-24 h-24 mx-auto" />
                 <h2 className="text-3xl font-light text-slate-900 tracking-tighter">SDP<span className="font-bold text-brand-blue">Suite</span></h2>
+                <p className="text-slate-500 text-sm">Faculty Administration Panel</p>
             </div>
             <form onSubmit={handleAccess} className="space-y-4">
                 <input 
@@ -44,10 +45,10 @@ export default function ProfessorDashboard() {
                     value={code} 
                     onChange={(e) => setCode(e.target.value)} 
                     placeholder="Enter security token" 
-                    className="w-full px-6 py-4 border border-slate-200 rounded-full text-center text-sm tracking-widest outline-none focus:border-brand-blue transition-all" 
+                    className="w-full px-6 py-4 border border-slate-200 rounded-xl text-center text-sm tracking-widest outline-none focus:border-brand-blue transition-all" 
                 />
-                <button type="submit" className="w-full py-4 bg-slate-900 text-white rounded-full text-sm font-bold hover:bg-slate-800 transition-all">
-                    Initialize Access
+                <button type="submit" className="w-full py-4 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all">
+                    Initialize Admin Session
                 </button>
             </form>
         </div>
@@ -59,13 +60,13 @@ export default function ProfessorDashboard() {
 
   return (
     <div className="min-h-screen bg-white flex h-screen overflow-hidden text-slate-900 font-sans">
-      <div className="w-72 border-r border-slate-100 flex flex-col">
-        <div className="p-8 flex items-center gap-3">
-            <img src="https://i.ibb.co/FqgQzNPw/LOGO-BLEU.png" alt="Logo" className="w-8 h-8" />
-            <span className="font-bold tracking-tight text-slate-900">Suite Admin</span>
+      <div className="w-80 border-r border-slate-100 flex flex-col">
+        <div className="p-8 flex items-center gap-3 border-b border-slate-50">
+            <img src="https://i.ibb.co/FqgQzNPw/LOGO-BLEU.png" alt="Logo" className="w-10 h-10" />
+            <span className="font-bold text-lg tracking-tight text-slate-900">SDP<span className="text-brand-blue">Suite</span></span>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4 px-4">Group Monitoring</h2>
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4 px-4">Workspace Monitor</h2>
             {Array.from({ length: 11 }, (_, i) => `Group ${i + 1}`).map(groupName => {
                 const groupData = groups.find(g => g.group_id === groupName);
                 const isActive = selectedGroup?.group_id === groupName;
@@ -91,7 +92,7 @@ export default function ProfessorDashboard() {
       <div className="flex-1 overflow-y-auto p-12 bg-white">
         {selectedGroup ? (
             <div className="space-y-10 max-w-5xl mx-auto">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center border-b border-slate-50 pb-8">
                     <h1 className="text-4xl font-light tracking-tighter">{selectedGroup.group_id}</h1>
                     <div className="flex gap-2 p-1 bg-slate-50 rounded-full">
                         { (['PESTEL', 'McKinsey', 'VRIO', 'TOWS', 'PORTER'] as const).map(tab => (

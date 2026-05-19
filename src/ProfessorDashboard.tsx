@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/src/utils/supabase/client';
-import { Lock, ShieldCheck, UserCircle } from 'lucide-react';
+import { Lock, ShieldCheck, UserCircle, ArrowRight } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { PESTELWorksheet, McKinseyWorksheet, VRIOAnalysisTable } from './components/Worksheets';
 
@@ -32,27 +32,46 @@ export default function ProfessorDashboard() {
 
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <div className="bg-white p-10 rounded-2xl shadow-2xl max-w-md w-full border-t-4 border-brand-blue">
-            <div className="flex justify-center mb-8">
-                <div className="bg-brand-blue/10 p-4 rounded-full">
-                    <ShieldCheck className="text-brand-blue" size={40} />
+      <div className="min-h-screen bg-white flex overflow-hidden font-sans">
+        {/* Left Side - Visual */}
+        <div className="hidden lg:flex flex-1 bg-slate-900 items-center justify-center p-12 relative">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+            <div className="text-white space-y-4 max-w-lg z-10">
+                <h1 className="text-6xl font-extrabold tracking-tighter">Strategic<br/>Suite<span className="text-brand-blue">.</span></h1>
+                <p className="text-slate-400 text-lg leading-relaxed">Advanced faculty monitoring interface. Secure, real-time, and built for high-performance academic management.</p>
+            </div>
+        </div>
+
+        {/* Right Side - Form */}
+        <div className="flex-1 flex items-center justify-center p-8">
+            <div className="w-full max-w-md space-y-8">
+                <div className="space-y-2">
+                    <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">Faculty Access</h2>
+                    <p className="text-slate-500 font-medium">Verify your credentials to initialize the dashboard.</p>
+                </div>
+                
+                <form onSubmit={handleAccess} className="space-y-6">
+                    <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
+                        <input 
+                            type="password" 
+                            value={code} 
+                            onChange={(e) => setCode(e.target.value)} 
+                            placeholder="Enter security token" 
+                            className="w-full pl-12 pr-4 py-5 bg-slate-50 border border-slate-100 rounded-2xl text-lg font-mono tracking-[0.2em] outline-none focus:border-brand-blue focus:bg-white transition-all shadow-sm" 
+                        />
+                    </div>
+                    <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-slate-200">
+                        Proceed to Dashboard <ArrowRight size={18}/>
+                    </button>
+                </form>
+
+                <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-slate-300 pt-8">
+                    <div className="h-px flex-1 bg-slate-100"></div>
+                    Secured by SDP
+                    <div className="h-px flex-1 bg-slate-100"></div>
                 </div>
             </div>
-            <h2 className="text-3xl font-extrabold text-slate-900 text-center mb-2">Faculty Portal</h2>
-            <p className="text-slate-500 text-center mb-8 text-sm">Secure access to administrative monitoring systems.</p>
-            <form onSubmit={handleAccess} className="space-y-4">
-                <input 
-                    type="password" 
-                    value={code} 
-                    onChange={(e) => setCode(e.target.value)} 
-                    placeholder="Enter security token" 
-                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-lg font-mono tracking-widest outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20" 
-                />
-                <button type="submit" className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
-                    <Lock size={18}/> Authorize Access
-                </button>
-            </form>
         </div>
       </div>
     );

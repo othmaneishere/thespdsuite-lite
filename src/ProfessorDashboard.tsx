@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createClient } from '@/src/utils/supabase/client';
 import { Lock } from 'lucide-react';
 import { cn } from '@/src/lib/utils';

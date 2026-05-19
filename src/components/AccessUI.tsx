@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 

@@ -82,9 +82,13 @@ export default function ProfessorDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 flex h-screen overflow-hidden text-slate-900 font-sans">
       <div className="w-72 bg-slate-900 text-slate-200 flex flex-col">
-        <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-            <UserCircle size={24} className="text-brand-blue"/>
-            <span className="font-bold tracking-tight">Faculty Admin</span>
+        <div className="p-8 border-b border-slate-800 flex flex-col items-center gap-4 text-center">
+            <img 
+                src="https://i.ibb.co/FqgQzNPw/LOGO-BLEU.png" 
+                alt="SDP Suite Logo" 
+                className="w-20 h-20 object-contain"
+            />
+            <span className="font-bold text-lg tracking-tight text-white">SDP Suite Admin</span>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
             <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 px-2">Monitoring Status</h2>

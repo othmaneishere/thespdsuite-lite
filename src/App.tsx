@@ -66,8 +66,13 @@ const AccessScreen = ({ onAccess }: { onAccess: (group: string, name: string) =>
         {/* Left Side - Visual */}
         <div className="hidden lg:flex flex-1 bg-slate-900 items-center justify-center p-12 relative">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-            <div className="text-white space-y-4 max-w-lg z-10">
-                <h1 className="text-6xl font-extrabold tracking-tighter">Strategic<br/>Suite<span className="text-brand-blue">.</span></h1>
+            <div className="text-white space-y-8 max-w-lg z-10 text-center">
+                <img 
+                    src="https://i.ibb.co/FqgQzNPw/LOGO-BLEU.png" 
+                    alt="SDP Suite Logo" 
+                    className="w-48 h-48 mx-auto object-contain drop-shadow-2xl"
+                />
+                <h1 className="text-6xl font-extrabold tracking-tighter">SDP Suite<span className="text-brand-blue">.</span></h1>
                 <p className="text-slate-400 text-lg leading-relaxed">Advanced academic collaboration interface. Real-time workspace synchronization for student teams.</p>
             </div>
         </div>

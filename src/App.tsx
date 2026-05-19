@@ -157,7 +157,22 @@ const AccessScreen = ({ onAccess }: { onAccess: (group: string, name: string) =>
 };
 
 // Components
-const CorporateHeader = ({ meta, setMeta, hideMeta = false }: { meta: MetaData; setMeta: (m: MetaData) => void; hideMeta?: boolean }) => {
+const CorporateHeader = ({ meta, setMeta, activeUsers, hideMeta = false }: { meta: MetaData; setMeta: (m: MetaData) => void; activeUsers: any[]; hideMeta?: boolean }) => {
+  const removeParticipant = (nameToRemove: string) => {
+    setMeta({
+      ...meta,
+      participants: meta.participants.filter(p => p !== nameToRemove)
+    });
+  };
+
+  const addParticipant = (name: string) => {
+    if (!name.trim() || meta.participants.includes(name.trim())) return;
+    setMeta({
+      ...meta,
+      participants: [...meta.participants, name.trim()]
+    });
+  };
+
   return (
     <div className={cn("flex flex-col md:flex-row justify-between border-b-2 border-gray-100 pb-8 mb-8 gap-8", hideMeta && "border-none mb-4")}>
       <div className="flex items-start gap-4">
@@ -195,7 +210,7 @@ const CorporateHeader = ({ meta, setMeta, hideMeta = false }: { meta: MetaData; 
               value={meta.companyName} 
               onChange={(e) => setMeta({...meta, companyName: e.target.value})}
               className="font-semibold text-gray-700 outline-hidden bg-transparent border-b border-dashed border-gray-300 w-full"
-              placeholder="----------------------------------"
+              placeholder="Enter company name..."
             />
           </div>
 
@@ -206,22 +221,47 @@ const CorporateHeader = ({ meta, setMeta, hideMeta = false }: { meta: MetaData; 
               value={meta.group} 
               onChange={(e) => setMeta({...meta, group: e.target.value})}
               className="font-semibold text-gray-700 outline-hidden bg-transparent border-b border-dashed border-gray-300 w-full"
-              placeholder="----------------------------------"
+              placeholder="Group name..."
             />
           </div>
 
-          <div className="flex flex-col border-b border-gray-200 col-span-2">
-            <div className="flex justify-between items-center">
-                <span className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">Participants ({meta.participants.length})</span>
+          <div className="flex flex-col border-b border-gray-200 col-span-2 py-2">
+            <div className="flex justify-between items-center mb-1">
+                <span className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">Team Members ({meta.participants.length})</span>
                 <span className="flex items-center gap-1 text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-bold">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-600 animate-pulse" />
-                    {meta.participants.length} Online
+                    {activeUsers.length} Online Now
                 </span>
             </div>
-            <div className="flex flex-col gap-1 font-semibold text-gray-700">
-                {meta.participants.map((name, index) => (
-                    <span key={index}>{name}</span>
-                ))}
+            <div className="flex flex-wrap gap-2">
+                {meta.participants.map((name, index) => {
+                    const isOnline = activeUsers.some(u => u.name === name);
+                    return (
+                        <div key={index} className={cn(
+                            "group flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-all",
+                            isOnline ? "bg-green-50 border-green-200 text-green-800" : "bg-gray-50 border-gray-200 text-gray-600"
+                        )}>
+                            <span className="font-bold text-[11px]">{name}</span>
+                            <button 
+                                onClick={() => removeParticipant(name)}
+                                className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-100 hover:text-red-600 rounded transition-all no-print"
+                            >
+                                <Trash2 size={10} />
+                            </button>
+                        </div>
+                    );
+                })}
+                <input 
+                    type="text"
+                    placeholder="+ Add Member"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            addParticipant(e.currentTarget.value);
+                            e.currentTarget.value = '';
+                        }
+                    }}
+                    className="text-[11px] font-bold text-brand-blue outline-none bg-transparent border-b border-dashed border-brand-blue/30 w-24 focus:w-32 transition-all no-print"
+                />
             </div>
           </div>
         </div>
@@ -230,7 +270,11 @@ const CorporateHeader = ({ meta, setMeta, hideMeta = false }: { meta: MetaData; 
   );
 };
 
-const ProjectMetadataFooter = ({ meta, setMeta }: { meta: MetaData; setMeta: (m: MetaData) => void }) => {
+const ProjectMetadataFooter = ({ meta, setMeta, activeUsers }: { meta: MetaData; setMeta: (m: MetaData) => void; activeUsers: any[] }) => {
+  const removeParticipant = (name: string) => {
+    setMeta({ ...meta, participants: meta.participants.filter(p => p !== name) });
+  };
+
   return (
     <div className="mt-12 pt-8 border-t-2 border-gray-100">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-sm">
@@ -256,7 +300,7 @@ const ProjectMetadataFooter = ({ meta, setMeta }: { meta: MetaData; setMeta: (m:
             value={meta.companyName} 
             onChange={(e) => setMeta({...meta, companyName: e.target.value})}
             className="font-bold text-gray-700 outline-hidden bg-transparent border-b border-dashed border-gray-300 w-full"
-            placeholder="----------------------------------"
+            placeholder="Enter company name..."
           />
         </div>
 
@@ -276,12 +320,20 @@ const ProjectMetadataFooter = ({ meta, setMeta }: { meta: MetaData; setMeta: (m:
             <span className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">Participants ({meta.participants.length})</span>
             <span className="flex items-center gap-1 text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-bold">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-600 animate-pulse" />
-                {meta.participants.length} Online
+                {activeUsers.length} Online Now
             </span>
           </div>
-          <div className="flex flex-col gap-1 font-bold text-gray-700">
+          <div className="flex flex-wrap gap-1 font-bold text-gray-700 mt-1">
               {meta.participants.map((name, index) => (
-                  <span key={index}>{name}</span>
+                  <span key={index} className="flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded border border-gray-100 group">
+                    {name}
+                    <button 
+                        onClick={() => removeParticipant(name)} 
+                        className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all no-print"
+                    >
+                        <Trash2 size={10} />
+                    </button>
+                  </span>
               ))}
           </div>
         </div>
@@ -1302,7 +1354,7 @@ function AppContent() {
                   {/* Main Worksheet Area */}
                   <div className="overflow-x-auto pb-12">
                   <div ref={containerRef} className="worksheet-container relative overflow-hidden">
-                  <CorporateHeader meta={meta} setMeta={setMeta} hideMeta={activeTab === 'TOWS'} />
+                  <CorporateHeader meta={meta} setMeta={setMeta} activeUsers={activeUsers} hideMeta={activeTab === 'TOWS'} />
 
                   {activeTab === 'TOWS' && <ConfrontationMatrixGuide />}
 
@@ -1427,17 +1479,17 @@ function AppContent() {
       {/* Hidden container for full report generation - avoids UI flicker */}
       <div id="full-report-print-container" className="hidden" aria-hidden="true">
         <div className="print-section bg-white p-12 w-[297mm]">
-          <CorporateHeader meta={meta} setMeta={setMeta} />
+          <CorporateHeader meta={meta} setMeta={setMeta} activeUsers={activeUsers} />
           <h2 className="text-4xl font-bold uppercase tracking-tight text-gray-900 border-b-8 border-gray-100 pb-2 mb-8">PESTEL Analysis</h2>
           <PESTELWorksheet data={pestelData} setData={() => {}} />
         </div>
         <div className="print-section bg-white p-12 w-[297mm]">
-          <CorporateHeader meta={meta} setMeta={setMeta} />
+          <CorporateHeader meta={meta} setMeta={setMeta} activeUsers={activeUsers} />
           <h2 className="text-4xl font-bold uppercase tracking-tight text-gray-900 border-b-8 border-gray-100 pb-2 mb-8">McKinsey 7-S Framework</h2>
           <McKinseyWorksheet data={mckinseyData} setData={() => {}} />
         </div>
         <div className="print-section bg-white p-12 w-[297mm]">
-          <CorporateHeader meta={meta} setMeta={setMeta} />
+          <CorporateHeader meta={meta} setMeta={setMeta} activeUsers={activeUsers} />
           <h2 className="text-4xl font-bold uppercase tracking-tight text-gray-900 border-b-8 border-gray-100 pb-2 mb-8">VRIO Framework</h2>
           <VRIOFramework />
           <div className="mt-8">
@@ -1454,7 +1506,7 @@ function AppContent() {
         {/* Porter's 5 Forces - Each force gets a page */}
         {(['suppliers', 'buyers', 'newEntrants', 'substitutes', 'rivalry'] as const).map(force => (
           <div key={force} className="print-section bg-white p-12 w-[297mm]">
-            <CorporateHeader meta={meta} setMeta={setMeta} />
+            <CorporateHeader meta={meta} setMeta={setMeta} activeUsers={activeUsers} />
             <h2 className="text-4xl font-bold uppercase tracking-tight text-gray-900 border-b-8 border-indigo-600 pb-2 mb-8">Porter's 5 Forces: {force.toUpperCase()}</h2>
             <PortersFiveForces data={portersData} setData={() => {}} activeForce={force} setActiveForce={() => {}} />
           </div>

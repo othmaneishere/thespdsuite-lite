@@ -47,8 +47,6 @@ const supabase = createClient();
 // Access Control Component
 const AccessScreen = ({ onAccess }: { onAccess: (group: string, name: string) => void }) => {
   const [selectedGroup, setSelectedGroup] = useState('Group 1');
-  const [customGroup, setCustomGroup] = useState('');
-  const [isCustom, setIsCustom] = useState(false);
   const [name, setName] = useState('');
 
   const handleSubmit = (e: FormEvent) => {
@@ -57,12 +55,7 @@ const AccessScreen = ({ onAccess }: { onAccess: (group: string, name: string) =>
       alert("Please enter your name to proceed.");
       return;
     }
-    const finalGroup = isCustom ? customGroup.trim() : selectedGroup;
-    if (!finalGroup) {
-      alert("Please select or enter a group name.");
-      return;
-    }
-    onAccess(finalGroup, name);
+    onAccess(selectedGroup, name);
   };
 
   const groups = Array.from({ length: 11 }, (_, i) => `Group ${i + 1}`);
@@ -101,40 +94,19 @@ const AccessScreen = ({ onAccess }: { onAccess: (group: string, name: string) =>
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between items-center px-1">
-              <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Your Group</label>
-              <button 
-                type="button"
-                onClick={() => setIsCustom(!isCustom)}
-                className="text-[10px] font-bold text-brand-blue uppercase hover:underline"
-              >
-                {isCustom ? "Select from list" : "Enter custom group"}
-              </button>
-            </div>
+            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest px-1">Your Group</label>
             <div className="relative">
               <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              {isCustom ? (
-                <input
-                  type="text"
-                  value={customGroup}
-                  onChange={(e) => setCustomGroup(e.target.value)}
-                  placeholder="e.g. MA27-Team-Alpha"
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all text-lg font-bold"
-                />
-              ) : (
-                <div className="relative">
-                  <select
-                    value={selectedGroup}
-                    onChange={(e) => setSelectedGroup(e.target.value)}
-                    className="w-full pl-12 pr-10 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all text-lg font-bold appearance-none cursor-pointer"
-                  >
-                    {groups.map(g => (
-                      <option key={g} value={g}>{g}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-                </div>
-              )}
+              <select
+                value={selectedGroup}
+                onChange={(e) => setSelectedGroup(e.target.value)}
+                className="w-full pl-12 pr-10 py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all text-lg font-bold appearance-none cursor-pointer"
+              >
+                {groups.map(g => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
             </div>
           </div>
 

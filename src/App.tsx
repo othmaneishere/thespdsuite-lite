@@ -865,10 +865,10 @@ function AppContent() {
   const [vrioNotes, setVrioNotes] = useState('');
   
   const [towsData, setTowsData] = useState<TOWSMatrixData>({
-    opportunities: ['Higher ticket pet items', 'More pets are bought', 'Healthier pet food'],
-    threats: ['Large companies are catching up everyone', 'Pet food margins are decreasing', 'Supermarkets are competing'],
-    strengths: ['Marketing', 'E-commerce shop', 'Bio food'],
-    weaknesses: ['Small compared to competition', 'Logistics', 'Small margins'],
+    opportunities: Array(3).fill(''),
+    threats: Array(3).fill(''),
+    strengths: Array(3).fill(''),
+    weaknesses: Array(3).fill(''),
     scores: {}
   });
 
@@ -1686,11 +1686,14 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
           {[0, 1, 2].map(r => [0, 1, 2].map(c => <MatrixCell key={`s-t-${r}-${c}`} rowType="strengths" colType="threats" rIdx={r} cIdx={c} />))}
         </div>
         <div className="flex flex-col bg-[#C6E0B4]/60 mt-2 border border-black ml-1">
-          {[0, 1, 2].map(i => (
-            <div key={i} className="h-14 flex items-center justify-center font-bold text-xl border-b border-black last:border-0 text-[#385623]">
-              {getRowTotal('strengths', i)}
-            </div>
-          ))}
+          {[0, 1, 2].map(i => {
+            const total = getRowTotal('strengths', i);
+            return (
+              <div key={i} className={cn("h-14 flex items-center justify-center font-bold text-xl border-b border-black last:border-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
+                {total}
+              </div>
+            );
+          })}
         </div>
 
         {/* ROW 4: Gap row */}
@@ -1720,11 +1723,14 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
           {[0, 1, 2].map(r => [0, 1, 2].map(c => <MatrixCell key={`w-t-${r}-${c}`} rowType="weaknesses" colType="threats" rIdx={r} cIdx={c} />))}
         </div>
         <div className="flex flex-col bg-[#FCE4D6] border border-black ml-1">
-          {[0, 1, 2].map(i => (
-            <div key={i} className="h-14 flex items-center justify-center font-bold text-xl border-b border-black last:border-0 text-[#843C0C]">
-              {getRowTotal('weaknesses', i)}
-            </div>
-          ))}
+          {[0, 1, 2].map(i => {
+            const total = getRowTotal('weaknesses', i);
+            return (
+              <div key={i} className={cn("h-14 flex items-center justify-center font-bold text-xl border-b border-black last:border-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
+                {total}
+              </div>
+            );
+          })}
         </div>
 
         {/* ROW 6: Totals for O and T */}
@@ -1735,7 +1741,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
           {[0, 1, 2].map(i => {
             const total = getColTotal('opportunities', i);
             return (
-              <div key={i} className={cn("h-14 flex items-center justify-center font-bold text-xl border-r border-black last:border-r-0", total === 0 ? "bg-[#FFF2CC] text-gray-700" : (total < 0 ? "bg-[#FCE4D6] text-red-800" : (total > 0 ? "text-[#385623]" : "")))}>
+              <div key={i} className={cn("h-14 flex items-center justify-center font-bold text-xl border-r border-black last:border-r-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
                 {total}
               </div>
             );
@@ -1746,7 +1752,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
           {[0, 1, 2].map(i => {
             const total = getColTotal('threats', i);
             return (
-              <div key={i} className={cn("h-14 flex items-center justify-center font-bold text-xl border-r border-black last:border-r-0", total < 0 ? "text-red-900" : "text-[#385623]")}>
+              <div key={i} className={cn("h-14 flex items-center justify-center font-bold text-xl border-r border-black last:border-r-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
                 {total}
               </div>
             );

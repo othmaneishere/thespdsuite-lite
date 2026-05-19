@@ -124,6 +124,9 @@ const AccessScreen = ({ onAccess }: { onAccess: (group: string, name: string) =>
           <span className="text-[10px] uppercase tracking-widest text-gray-300 font-bold">MCKINSEY 7S</span>
           <span className="text-[10px] uppercase tracking-widest text-gray-300 font-bold">VRIO</span>
         </div>
+        <div className="mt-4 text-center">
+            <a href="/professor-dashboard" className="text-[10px] text-gray-300 hover:text-gray-500 uppercase tracking-widest">Professor Access</a>
+        </div>
       </motion.div>
     </div>
   );
@@ -1078,6 +1081,9 @@ function AppContent() {
 
   return (
     <main className="min-h-screen bg-gray-100 py-12 px-4 selection:bg-brand-blue selection:text-white relative">
+      {/* Professor Dashboard Link */}
+      <a href="/professor-dashboard" className="fixed bottom-4 right-4 text-[10px] text-gray-300 hover:text-gray-500 uppercase tracking-widest no-print">Admin</a>
+
       {/* Global Status Bar */}
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none pt-4">
         <div className="flex gap-4 pointer-events-auto">

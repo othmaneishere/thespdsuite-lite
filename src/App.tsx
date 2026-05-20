@@ -456,13 +456,32 @@ export default function App() {
 }
 
 function AppContent() {
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'PESTEL' | 'McKinsey' | 'VRIO' | 'TOWS' | 'PORTER'>('PESTEL');
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(() => {
+    return localStorage.getItem('sdp_selected_group');
+  });
+  const [activeTab, setActiveTab] = useState<'PESTEL' | 'McKinsey' | 'VRIO' | 'TOWS' | 'PORTER'>(() => {
+    const saved = localStorage.getItem('sdp_active_tab');
+    return (saved as any) || 'PESTEL';
+  });
   const [activeForce, setActiveForce] = useState<keyof PortersFiveForcesData>('suppliers');
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingAll, setIsExportingAll] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Update selected group in localStorage
+  useEffect(() => {
+    if (selectedGroup) {
+      localStorage.setItem('sdp_selected_group', selectedGroup);
+    } else {
+      localStorage.removeItem('sdp_selected_group');
+    }
+  }, [selectedGroup]);
+
+  // Update active tab in localStorage
+  useEffect(() => {
+    localStorage.setItem('sdp_active_tab', activeTab);
+  }, [activeTab]);
   
   const [pestelData, setPestelData] = useState<PESTELData[]>(
     ['Political', 'Economic', 'Social', 'Technological', 'Environmental', 'Legal'].map(cat => ({

@@ -841,71 +841,77 @@ function AppContent() {
           </div>
           
           <div className="flex-1 flex items-center justify-center p-4">
-            <div className="flex items-center gap-1 bg-gray-100/50 p-1.5 rounded-2xl border border-gray-200/50">
+            <div className="flex items-center gap-4 lg:gap-8 transition-all">
               {(['PESTEL', 'McKinsey', 'VRIO', 'PORTER', 'TOWS'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={cn(
-                    "px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 cursor-pointer whitespace-nowrap",
+                    "relative py-2 text-[11px] font-extrabold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer whitespace-nowrap group",
                     activeTab === tab 
-                      ? "bg-white text-gray-900 shadow-sm ring-1 ring-black/5" 
-                      : "text-gray-400 hover:text-gray-900 hover:bg-white/50"
+                      ? "text-blue-600" 
+                      : "text-gray-400 hover:text-gray-900"
                   )}
                 >
                   {tab === 'PESTEL' ? 'PESTEL Analysis' :
-                   tab === 'McKinsey' ? 'McKinsey 7-S' :
-                   tab === 'VRIO' ? 'VRIO' :
-                   tab === 'PORTER' ? "Porter's 5" :
-                   'Confrontation'}
+                   tab === 'McKinsey' ? 'McKinsey 7-S Framework' :
+                   tab === 'VRIO' ? 'VRIO Framework' :
+                   tab === 'PORTER' ? "Porter's Five Forces" :
+                   'Confrontation Matrix'}
+                  <span className={cn(
+                    "absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transition-transform duration-300 origin-left",
+                    activeTab === tab ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100 opacity-20"
+                  )} />
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="p-4 lg:pr-8 flex items-center gap-3 border-t lg:border-t-0 lg:border-l border-gray-100">
+          <div className="p-4 lg:pr-8 flex items-center gap-2 border-t lg:border-t-0 lg:border-l border-gray-100">
             <button
               onClick={() => {
                 if (confirm('Are you sure you want to exit this session? You will return to the group selection page.')) {
                   setSelectedGroup(null);
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all group relative cursor-pointer font-black text-[10px] uppercase tracking-widest"
+              className="flex items-center gap-2 px-4 py-2 text-gray-500 hover:text-blue-600 transition-all cursor-pointer font-extrabold text-[10px] uppercase tracking-[0.2em]"
               title="Exit Session"
             >
-              <span className="material-icons text-[20px]">logout</span>
+              <span className="material-icons text-[18px]">logout</span>
               <span className="hidden xl:inline">Exit Session</span>
             </button>
             
+            <div className="w-px h-4 bg-gray-200 mx-1 hidden lg:block" />
+
             <button
               onClick={clearData}
-              className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all group relative cursor-pointer"
+              className="p-2 text-gray-400 hover:text-red-500 transition-all cursor-pointer"
               title="Clear current worksheet"
             >
-              <span className="material-icons text-[22px]">delete_sweep</span>
+              <span className="material-icons text-[20px]">delete_sweep</span>
             </button>
 
             <button
               onClick={exportPDF}
               disabled={isExporting}
-              className="px-5 py-2.5 bg-white border border-gray-200 text-gray-900 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:border-gray-900 transition-all disabled:opacity-50 active:scale-95 cursor-pointer shadow-xs"
+              className="px-4 py-2 text-gray-900 font-extrabold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 hover:bg-gray-50 rounded-lg transition-all disabled:opacity-50 cursor-pointer"
             >
               {isExporting && !isExportingAll ? (
-                <div className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin" />
+                <div className="w-3 h-3 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin" />
               ) : (
                 <span className="material-icons text-[18px]">file_download</span>
               )}
-              Tab
+              Export
             </button>
 
             <button
               onClick={exportAllPDF}
               disabled={isExportingAll}
-              className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 cursor-pointer"
+              className="px-5 py-2 bg-blue-600 text-white rounded-xl font-extrabold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md shadow-blue-600/10 disabled:opacity-50 cursor-pointer"
             >
               {isExportingAll ? (
                 <span className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   Generating...
                 </span>
               ) : (

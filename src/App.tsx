@@ -1248,11 +1248,35 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
           ))}
         </div>
         <div className="grid grid-cols-3 mt-2 border border-black mx-1">
-          {[0, 1, 2].map(r => [0, 1, 2].map(c => <MatrixCell key={`s-o-${r}-${c}`} rowType="strengths" colType="opportunities" rIdx={r} cIdx={c} />))}
+          {[0, 1, 2].map(r => [0, 1, 2].map(c => (
+            <MatrixCell 
+              key={`s-o-${r}-${c}`} 
+              rowType="strengths" 
+              colType="opportunities" 
+              rIdx={r} 
+              cIdx={c} 
+              initialScore={getScore('strengths', r, 'opportunities', c)}
+              initialNote={getNote('strengths', r, 'opportunities', c)}
+              onScoreChange={(val) => updateScore('strengths', r, 'opportunities', c, val)}
+              onNoteChange={(val) => updateNote('strengths', r, 'opportunities', c, val)}
+            />
+          )))}
         </div>
         <div /> {/* Gap col */}
         <div className="grid grid-cols-3 mt-2 border border-black mx-1">
-          {[0, 1, 2].map(r => [0, 1, 2].map(c => <MatrixCell key={`s-t-${r}-${c}`} rowType="strengths" colType="threats" rIdx={r} cIdx={c} />))}
+          {[0, 1, 2].map(r => [0, 1, 2].map(c => (
+            <MatrixCell 
+              key={`s-t-${r}-${c}`} 
+              rowType="strengths" 
+              colType="threats" 
+              rIdx={r} 
+              cIdx={c} 
+              initialScore={getScore('strengths', r, 'threats', c)}
+              initialNote={getNote('strengths', r, 'threats', c)}
+              onScoreChange={(val) => updateScore('strengths', r, 'threats', c, val)}
+              onNoteChange={(val) => updateNote('strengths', r, 'threats', c, val)}
+            />
+          )))}
         </div>
         <div className="flex flex-col bg-[#C6E0B4]/60 mt-2 border border-black ml-1">
           {[0, 1, 2].map(i => {

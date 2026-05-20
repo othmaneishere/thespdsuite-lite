@@ -43,7 +43,7 @@ import { cn } from '@/src/lib/utils';
 import { MetaData, PESTELData, McKinsey7SData, VRIOAnalysisData, TOWSMatrixData, PortersFiveForcesData } from './types';
 
 // Components
-const CorporateHeader = ({ meta, setMeta, hideMeta = false }: { meta: MetaData; setMeta: (m: MetaData) => void; hideMeta?: boolean }) => {
+const CorporateHeader = ({ meta, setMeta, selectedGroup, hideMeta = false }: { meta: MetaData; setMeta: (m: MetaData) => void; selectedGroup?: string | null; hideMeta?: boolean }) => {
   return (
     <div className={cn("flex flex-col md:flex-row justify-between border-b-2 border-gray-100 pb-8 mb-8 gap-8", hideMeta && "border-none mb-4")}>
       <div className="flex items-start gap-4">
@@ -67,6 +67,11 @@ const CorporateHeader = ({ meta, setMeta, hideMeta = false }: { meta: MetaData; 
           <div className="flex flex-col border-b border-gray-200">
             <span className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">Cohort</span>
             <span className="font-semibold text-black">MA27</span>
+          </div>
+
+          <div className="flex flex-col border-b border-gray-200">
+            <span className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">Group</span>
+            <span className="font-semibold text-black">{selectedGroup || '-'}</span>
           </div>
 
           <div className="flex flex-col border-b border-gray-200">
@@ -820,7 +825,7 @@ function AppContent() {
           <div className="max-w-6xl mx-auto">
             {/* Header with Title and Metadata */}
             <div ref={containerRef} className="worksheet-container relative overflow-hidden bg-white">
-              <CorporateHeader meta={meta} setMeta={setMeta} hideMeta={false} />
+              <CorporateHeader meta={meta} setMeta={setMeta} selectedGroup={selectedGroup} hideMeta={false} />
 
               {activeTab === 'TOWS' && <ConfrontationMatrixGuide />}
 
@@ -885,17 +890,17 @@ function AppContent() {
       {/* Hidden container for full report generation */}
       <div id="full-report-print-container" className="hidden" aria-hidden="true">
         <div className="print-section bg-white p-12 w-[297mm]">
-          <CorporateHeader meta={meta} setMeta={setMeta} />
+          <CorporateHeader meta={meta} setMeta={setMeta} selectedGroup={selectedGroup} />
           <h2 className="text-4xl font-bold uppercase tracking-tight text-gray-900 border-b-8 border-gray-100 pb-2 mb-8">PESTEL Analysis</h2>
           <PESTELWorksheet data={pestelData} setData={() => {}} />
         </div>
         <div className="print-section bg-white p-12 w-[297mm]">
-          <CorporateHeader meta={meta} setMeta={setMeta} />
+          <CorporateHeader meta={meta} setMeta={setMeta} selectedGroup={selectedGroup} />
           <h2 className="text-4xl font-bold uppercase tracking-tight text-gray-900 border-b-8 border-gray-100 pb-2 mb-8">McKinsey 7-S Framework</h2>
           <McKinseyWorksheet data={mckinseyData} setData={() => {}} />
         </div>
         <div className="print-section bg-white p-12 w-[297mm]">
-          <CorporateHeader meta={meta} setMeta={setMeta} />
+          <CorporateHeader meta={meta} setMeta={setMeta} selectedGroup={selectedGroup} />
           <h2 className="text-4xl font-bold uppercase tracking-tight text-gray-900 border-b-8 border-gray-100 pb-2 mb-8">VRIO Framework</h2>
           <VRIOFramework />
           <div className="mt-8">
@@ -904,7 +909,7 @@ function AppContent() {
         </div>
         {(['suppliers', 'buyers', 'newEntrants', 'substitutes', 'rivalry'] as const).map(force => (
           <div key={force} className="print-section bg-white p-12 w-[297mm]">
-            <CorporateHeader meta={meta} setMeta={setMeta} />
+            <CorporateHeader meta={meta} setMeta={setMeta} selectedGroup={selectedGroup} />
             <h2 className="text-4xl font-bold uppercase tracking-tight text-gray-900 border-b-8 border-indigo-600 pb-2 mb-8">Porter's 5 Forces: {force.toUpperCase()}</h2>
             <PortersFiveForces data={portersData} setData={() => {}} activeForce={force} setActiveForce={() => {}} />
           </div>

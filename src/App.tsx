@@ -1364,20 +1364,20 @@ const VRIOAnalysisTable = ({
               <th className="border border-black p-4 text-center font-bold text-sm bg-gray-50/50">Type</th>
               <th className="border border-black p-4 text-center font-bold text-sm bg-gray-50/50 w-1/4">Detail</th>
               <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-20">
-                <div className="text-base">V</div>
-                <div className="text-[8px] font-normal leading-tight lowercase">is it valuable?</div>
+                <div className="text-lg">V</div>
+                <div className="text-[10px] font-normal leading-tight lowercase">is it valuable?</div>
               </th>
               <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-20">
-                <div className="text-base">R</div>
-                <div className="text-[8px] font-normal leading-tight lowercase">is it rare?</div>
+                <div className="text-lg">R</div>
+                <div className="text-[10px] font-normal leading-tight lowercase">is it rare?</div>
               </th>
               <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-20">
-                <div className="text-base">I</div>
-                <div className="text-[8px] font-normal leading-tight lowercase">is it hard to imitate?</div>
+                <div className="text-lg">I</div>
+                <div className="text-[10px] font-normal leading-tight lowercase">is it hard to imitate?</div>
               </th>
               <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-28">
-                <div className="text-base">O</div>
-                <div className="text-[8px] font-normal leading-tight">How organized is the company around this?</div>
+                <div className="text-lg">O</div>
+                <div className="text-[10px] font-normal leading-tight">How organized is the company around this?</div>
               </th>
             </tr>
           </thead>
@@ -1461,35 +1461,35 @@ const VRIOFramework = () => {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] gap-0">
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center">
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-48 bg-white text-center">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[64px] text-gray-300">payments</span>
+            <span className="material-icons text-[80px] text-gray-300">payments</span>
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT VALUABLE?</span>
+          <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT VALUABLE?</span>
         </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-48 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[64px] text-gray-300">diamond</span>
+            <span className="material-icons text-[80px] text-gray-300">diamond</span>
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT RARE?</span>
+          <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT RARE?</span>
         </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-48 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[64px] text-gray-300">content_copy</span>
+            <span className="material-icons text-[80px] text-gray-300">content_copy</span>
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight">IT IT DIFFICULT TO IMITATE?</span>
+          <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT DIFFICULT TO IMITATE?</span>
         </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-48 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[64px] text-gray-300">settings_suggest</span>
+            <span className="material-icons text-[80px] text-gray-300">settings_suggest</span>
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-tight text-center leading-[1.1] text-gray-800 px-2">HOW ORGANIZED IS THE COMPANY AROUND THIS</span>
+          <span className="text-sm font-bold uppercase tracking-tight text-center leading-[1.1] text-gray-800 px-2">HOW ORGANIZED IS THE COMPANY AROUND THIS</span>
         </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-48 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[64px] text-gray-300">ads_click</span>
+            <span className="material-icons text-[80px] text-gray-300">ads_click</span>
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight px-4">WHAT IS THE OVERALL RESULT?</span>
+          <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight px-4">WHAT IS THE OVERALL RESULT?</span>
         </div>
       </div>
 

@@ -829,45 +829,18 @@ function AppContent() {
   return selectedGroup ? (
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-8 font-sans selection:bg-brand-blue/10">
       <div className="max-w-[1400px] mx-auto bg-white rounded-[32px] shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden min-h-[90vh] flex flex-col">
-        {/* Navigation Header */}
-        <div className="flex flex-col lg:flex-row border-b border-gray-100">
-          <div className="lg:w-72 p-4 border-r border-gray-100 flex items-center justify-center bg-gray-50/30">
+        {/* Top Header Row: Logo and Actions */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-white">
+          <div className="flex items-center gap-4">
             <img 
               src="https://i.ibb.co/FqgQzNPw/LOGO-BLEU.png" 
               alt="SDP Suite Logo" 
-              className="h-20 w-auto object-contain"
+              className="h-16 w-auto object-contain"
               crossOrigin="anonymous"
             />
           </div>
-          
-          <div className="flex-1 flex items-center justify-center p-4">
-            <div className="flex items-center gap-4 lg:gap-8 transition-all">
-              {(['PESTEL', 'McKinsey', 'VRIO', 'PORTER', 'TOWS'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={cn(
-                    "relative py-2 text-[11px] font-extrabold uppercase tracking-[0.2em] transition-all duration-300 cursor-pointer whitespace-nowrap group",
-                    activeTab === tab 
-                      ? "text-blue-600" 
-                      : "text-gray-400 hover:text-gray-900"
-                  )}
-                >
-                  {tab === 'PESTEL' ? 'PESTEL Analysis' :
-                   tab === 'McKinsey' ? 'McKinsey 7-S Framework' :
-                   tab === 'VRIO' ? 'VRIO Framework' :
-                   tab === 'PORTER' ? "Porter's Five Forces" :
-                   'Confrontation Matrix'}
-                  <span className={cn(
-                    "absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transition-transform duration-300 origin-left",
-                    activeTab === tab ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100 opacity-20"
-                  )} />
-                </button>
-              ))}
-            </div>
-          </div>
 
-          <div className="p-4 lg:pr-8 flex items-center gap-2 border-t lg:border-t-0 lg:border-l border-gray-100">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => {
                 if (confirm('Are you sure you want to exit this session? You will return to the group selection page.')) {
@@ -878,10 +851,10 @@ function AppContent() {
               title="Exit Session"
             >
               <span className="material-icons text-[18px]">logout</span>
-              <span className="hidden xl:inline">Exit Session</span>
+              <span className="hidden xl:inline">Exit</span>
             </button>
             
-            <div className="w-px h-4 bg-gray-200 mx-1 hidden lg:block" />
+            <div className="w-px h-4 bg-gray-200 mx-1" />
 
             <button
               onClick={clearData}
@@ -891,23 +864,27 @@ function AppContent() {
               <span className="material-icons text-[20px]">delete_sweep</span>
             </button>
 
+            {/* Export Current Page Button */}
             <button
               onClick={exportPDF}
               disabled={isExporting}
-              className="px-4 py-2 text-gray-900 font-extrabold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 hover:bg-gray-50 rounded-lg transition-all disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2 bg-gray-900 text-white rounded-xl font-extrabold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 hover:bg-black transition-all shadow-md shadow-black/10 disabled:opacity-50 cursor-pointer"
+              title="Download current page as PDF"
             >
               {isExporting && !isExportingAll ? (
-                <div className="w-3 h-3 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin" />
+                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <span className="material-icons text-[18px]">file_download</span>
+                <span className="material-icons text-[18px]">description</span>
               )}
-              Export
+              Page PDF
             </button>
 
+            {/* Export Full Report Button */}
             <button
               onClick={exportAllPDF}
               disabled={isExportingAll}
               className="px-5 py-2 bg-blue-600 text-white rounded-xl font-extrabold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md shadow-blue-600/10 disabled:opacity-50 cursor-pointer"
+              title="Download all frameworks as multi-page PDF"
             >
               {isExportingAll ? (
                 <span className="flex items-center gap-2">
@@ -917,10 +894,34 @@ function AppContent() {
               ) : (
                 <>
                   <span className="material-icons text-[18px]">auto_stories</span>
-                  Report
+                  Full Report
                 </>
               )}
             </button>
+          </div>
+        </div>
+
+        {/* Slideable Navigation Bar */}
+        <div className="bg-gray-50/50 border-b border-gray-100 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 p-4 px-8 min-w-max mx-auto max-w-6xl">
+            {(['PESTEL', 'McKinsey', 'VRIO', 'PORTER', 'TOWS'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-200 cursor-pointer whitespace-nowrap rounded-xl border-2",
+                  activeTab === tab 
+                    ? "bg-white border-blue-600 text-blue-600 shadow-sm" 
+                    : "bg-transparent border-transparent text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+                )}
+              >
+                {tab === 'PESTEL' ? 'PESTEL Analysis' :
+                 tab === 'McKinsey' ? 'McKinsey 7-S Framework' :
+                 tab === 'VRIO' ? 'VRIO Framework' :
+                 tab === 'PORTER' ? "Porter's Five Forces" :
+                 'Confrontation Matrix'}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -1461,33 +1462,33 @@ const VRIOFramework = () => {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] gap-0">
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-48 bg-white text-center">
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-56 bg-white text-center">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[80px] text-gray-300">payments</span>
+            <span className="material-icons text-[100px] text-gray-300">payments</span>
           </div>
           <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT VALUABLE?</span>
         </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-48 bg-white text-center border-l-0">
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-56 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[80px] text-gray-300">diamond</span>
+            <span className="material-icons text-[100px] text-gray-300">diamond</span>
           </div>
           <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT RARE?</span>
         </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-48 bg-white text-center border-l-0">
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-56 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[80px] text-gray-300">content_copy</span>
+            <span className="material-icons text-[100px] text-gray-300">content_copy</span>
           </div>
           <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT DIFFICULT TO IMITATE?</span>
         </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-48 bg-white text-center border-l-0">
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-56 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[80px] text-gray-300">settings_suggest</span>
+            <span className="material-icons text-[100px] text-gray-300">settings_suggest</span>
           </div>
           <span className="text-sm font-bold uppercase tracking-tight text-center leading-[1.1] text-gray-800 px-2">HOW ORGANIZED IS THE COMPANY AROUND THIS</span>
         </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-48 bg-white text-center border-l-0">
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-56 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[80px] text-gray-300">ads_click</span>
+            <span className="material-icons text-[100px] text-gray-300">ads_click</span>
           </div>
           <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight px-4">WHAT IS THE OVERALL RESULT?</span>
         </div>

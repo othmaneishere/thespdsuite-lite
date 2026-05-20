@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, Component, ErrorInfo, ReactNode } from 'react';
+import { FileText, Settings2, Network, Files } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Error Boundary Component for stability
@@ -901,27 +902,44 @@ function AppContent() {
           </div>
         </div>
 
-        {/* Slideable Navigation Bar */}
-        <div className="bg-gray-50/50 border-b border-gray-100 overflow-x-auto scrollbar-hide">
-          <div className="flex items-center gap-2 p-4 px-8 min-w-max mx-auto max-w-6xl">
-            {(['PESTEL', 'McKinsey', 'VRIO', 'PORTER', 'TOWS'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={cn(
-                  "px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-200 cursor-pointer whitespace-nowrap rounded-xl border-2",
-                  activeTab === tab 
-                    ? "bg-white border-blue-600 text-blue-600 shadow-sm" 
-                    : "bg-transparent border-transparent text-gray-400 hover:text-gray-900 hover:bg-gray-100"
-                )}
-              >
-                {tab === 'PESTEL' ? 'PESTEL Analysis' :
-                 tab === 'McKinsey' ? 'McKinsey 7-S Framework' :
-                 tab === 'VRIO' ? 'VRIO Framework' :
-                 tab === 'PORTER' ? "Porter's Five Forces" :
-                 'Confrontation Matrix'}
-              </button>
-            ))}
+        {/* Navigation Bar */}
+        <div className="flex items-center justify-center p-4">
+          <div className="flex bg-white rounded-xl p-1 shadow-sm border border-gray-200 overflow-x-auto">
+            {/* PESTEL */}
+            <button
+              onClick={() => setActiveTab('PESTEL')}
+              className={cn("px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2", activeTab === 'PESTEL' ? "bg-brand-peach text-gray-900 shadow-md" : "bg-transparent text-gray-500 hover:text-gray-800")}
+            >
+              <FileText size={18} /> PESTEL Analysis
+            </button>
+            {/* McKinsey */}
+            <button
+              onClick={() => setActiveTab('McKinsey')}
+              className={cn("px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2", activeTab === 'McKinsey' ? "bg-brand-peach text-gray-900 shadow-md" : "bg-transparent text-gray-500 hover:text-gray-800")}
+            >
+              <Settings2 size={18} /> McKinsey 7-S
+            </button>
+            {/* VRIO */}
+            <button
+              onClick={() => setActiveTab('VRIO')}
+              className={cn("px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2", activeTab === 'VRIO' ? "bg-brand-peach text-gray-900 shadow-md" : "bg-transparent text-gray-500 hover:text-gray-800")}
+            >
+              <Settings2 size={18} /> VRIO Framework
+            </button>
+            {/* TOWS/Confrontation Matrix */}
+            <button
+              onClick={() => setActiveTab('TOWS')}
+              className={cn("px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2", activeTab === 'TOWS' ? "bg-brand-peach text-gray-900 shadow-md" : "bg-transparent text-gray-500 hover:text-gray-800")}
+            >
+              <Network size={18} /> Confrontation Matrix
+            </button>
+            {/* Porter's */}
+            <button
+              onClick={() => setActiveTab('PORTER')}
+              className={cn("px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2", activeTab === 'PORTER' ? "bg-brand-peach text-gray-900 shadow-md" : "bg-transparent text-gray-500 hover:text-gray-800")}
+            >
+              <Files size={18} /> Porter's 5 Forces
+            </button>
           </div>
         </div>
 

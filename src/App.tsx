@@ -497,7 +497,8 @@ function AppContent() {
     threats: Array(3).fill(''),
     strengths: Array(3).fill(''),
     weaknesses: Array(3).fill(''),
-    scores: {}
+    scores: {},
+    notes: {}
   });
   
   const [portersData, setPortersData] = useState<PortersFiveForcesData>({
@@ -772,7 +773,11 @@ function AppContent() {
                     : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                 )}
               >
-                {tab}
+                {tab === 'PESTEL' ? 'PESTEL Analysis' :
+                 tab === 'McKinsey' ? 'McKinsey 7-S Framework' :
+                 tab === 'VRIO' ? 'VRIO Framework' :
+                 tab === 'PORTER' ? "Porter's 5 Forces" :
+                 'Confrontation Matrix'}
               </button>
             ))}
           </div>
@@ -838,8 +843,8 @@ function AppContent() {
                     activeTab === 'PORTER' ? "border-b-[12px] border-indigo-600 pb-2" :
                     ""
                   )}>
-                    {activeTab === 'PESTEL' ? 'PESTEL Worksheet' : 
-                     activeTab === 'McKinsey' ? 'McKinsey 7-S Worksheet' : 
+                    {activeTab === 'PESTEL' ? 'PESTEL Analysis' : 
+                     activeTab === 'McKinsey' ? 'McKinsey 7-S Framework' : 
                      activeTab === 'VRIO' ? 'VRIO Framework' :
                      activeTab === 'TOWS' ? 'Confrontation Matrix' :
                      "Porter's Five Forces"}
@@ -936,13 +941,8 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
   };
 
   const updateScore = (rowType: 'strengths' | 'weaknesses', rowIndex: number, colType: 'opportunities' | 'threats', colIndex: number, value: string) => {
-    if (value !== "" && value !== "-" && value !== "+" && isNaN(parseInt(value))) return;
-    
-    let finalValue: string | number = value;
-    if (value !== "" && value !== "-" && value !== "+") {
-      const numValue = parseInt(value);
-      finalValue = Math.max(-2, Math.min(2, numValue));
-    }
+    let finalValue: number = parseInt(value);
+    if (isNaN(finalValue)) finalValue = 0;
     
     setData({
       ...data,
@@ -953,8 +953,22 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
     });
   };
 
+  const updateNote = (rowType: 'strengths' | 'weaknesses', rowIndex: number, colType: 'opportunities' | 'threats', colIndex: number, value: string) => {
+    setData({
+      ...data,
+      notes: {
+        ...data.notes,
+        [`${rowType}-${rowIndex}-${colType}-${colIndex}`]: value
+      }
+    });
+  };
+
   const getScore = (rowType: 'strengths' | 'weaknesses', rowIndex: number, colType: 'opportunities' | 'threats', colIndex: number) => {
     return data.scores[`${rowType}-${rowIndex}-${colType}-${colIndex}`] ?? 0;
+  };
+
+  const getNote = (rowType: 'strengths' | 'weaknesses', rowIndex: number, colType: 'opportunities' | 'threats', colIndex: number) => {
+    return data.notes[`${rowType}-${rowIndex}-${colType}-${colIndex}`] ?? "";
   };
 
   const getScoreNumber = (rowType: 'strengths' | 'weaknesses', rowIndex: number, colType: 'opportunities' | 'threats', colIndex: number) => {
@@ -986,9 +1000,9 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
   const getBgColor = (scoreValue: string | number) => {
     const score = parseInt(String(scoreValue));
     if (isNaN(score)) return 'bg-white';
-    if (score >= 1) return 'bg-[#C6E0B4]';
-    if (score === 0) return 'bg-[#FFF2CC]';
-    if (score <= -1) return 'bg-[#F4B084]';
+    if (score >= 1) return 'bg-[#C6E0B4]'; // Green
+    if (score === 0) return 'bg-[#FFF2CC]'; // Beige/Yellow
+    if (score <= -1) return 'bg-[#F4B084]'; // Red/Orange
     return 'bg-white';
   };
 
@@ -1013,15 +1027,41 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
     key?: string;
   }) => {
     const score = getScore(rowType, rIdx, colType, cIdx);
+    const note = getNote(rowType, rIdx, colType, cIdx);
+    
     return (
-      <div className={cn("border border-gray-400 h-14 flex items-center justify-center transition-colors", getBgColor(score))}>
-        <input
-          type="text"
-          value={score}
-          onChange={(e) => updateScore(rowType, rIdx, colType, cIdx, e.target.value)}
-          className={cn("w-full h-full text-center font-bold text-lg bg-transparent outline-hidden", getTextColor(score))}
-          placeholder="0"
-        />
+      <div className={cn(
+        "border border-gray-400 h-[100px] flex flex-col transition-all duration-300 shadow-sm hover:shadow-md", 
+        getBgColor(score)
+      )}>
+        {/* Top Section: Dropdown */}
+        <div className="border-b border-gray-400/30 p-1">
+          <select
+            value={score}
+            onChange={(e) => updateScore(rowType, rIdx, colType, cIdx, e.target.value)}
+            className={cn(
+              "w-full bg-transparent font-bold text-xs outline-hidden cursor-pointer py-1 appearance-none text-center",
+              getTextColor(score)
+            )}
+          >
+            <option value="-2">Very Negative (-2)</option>
+            <option value="-1">Negative (-1)</option>
+            <option value="0">Neutral (0)</option>
+            <option value="1">Positive (+1)</option>
+            <option value="2">Very Positive (+2)</option>
+          </select>
+        </div>
+        
+        {/* Bottom Section: Textarea */}
+        <div className="flex-1 p-1">
+          <textarea
+            value={note}
+            onChange={(e) => updateNote(rowType, rIdx, colType, cIdx, e.target.value)}
+            className="w-full h-full text-[10px] leading-tight bg-transparent outline-hidden resize-none placeholder:text-gray-400/50"
+            placeholder="Notes..."
+            rows={2}
+          />
+        </div>
       </div>
     );
   };
@@ -1078,7 +1118,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
         </div>
         <div className="flex flex-col bg-[#D9D9D9] mt-2 border-y border-l border-black">
           {[0, 1, 2].map(i => (
-            <div key={i} className="h-14 border-b border-black last:border-b-0 p-2 flex items-center justify-center text-center">
+            <div key={i} className="h-[100px] border-b border-black last:border-b-0 p-2 flex items-center justify-center text-center">
               <textarea
                 value={data.strengths[i]}
                 onChange={(e) => updateList('strengths', i, e.target.value)}
@@ -1099,7 +1139,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
           {[0, 1, 2].map(i => {
             const total = getRowTotal('strengths', i);
             return (
-              <div key={i} className={cn("h-14 flex items-center justify-center font-bold text-xl border-b border-black last:border-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
+              <div key={i} className={cn("h-[100px] flex items-center justify-center font-bold text-xl border-b border-black last:border-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
                 {total}
               </div>
             );
@@ -1115,7 +1155,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
         </div>
         <div className="flex flex-col bg-[#D9D9D9] border-y border-l border-black">
           {[0, 1, 2].map(i => (
-            <div key={i} className="h-14 border-b border-black last:border-b-0 p-2 flex items-center justify-center text-center">
+            <div key={i} className="h-[100px] border-b border-black last:border-b-0 p-2 flex items-center justify-center text-center">
               <textarea
                 value={data.weaknesses[i]}
                 onChange={(e) => updateList('weaknesses', i, e.target.value)}
@@ -1136,7 +1176,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
           {[0, 1, 2].map(i => {
             const total = getRowTotal('weaknesses', i);
             return (
-              <div key={i} className={cn("h-14 flex items-center justify-center font-bold text-xl border-b border-black last:border-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
+              <div key={i} className={cn("h-[100px] flex items-center justify-center font-bold text-xl border-b border-black last:border-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
                 {total}
               </div>
             );
@@ -1151,7 +1191,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
           {[0, 1, 2].map(i => {
             const total = getColTotal('opportunities', i);
             return (
-              <div key={i} className={cn("h-14 flex items-center justify-center font-bold text-xl border-r border-black last:border-r-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
+              <div key={i} className={cn("h-[100px] flex items-center justify-center font-bold text-xl border-r border-black last:border-r-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
                 {total}
               </div>
             );
@@ -1162,7 +1202,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
           {[0, 1, 2].map(i => {
             const total = getColTotal('threats', i);
             return (
-              <div key={i} className={cn("h-14 flex items-center justify-center font-bold text-xl border-r border-black last:border-r-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
+              <div key={i} className={cn("h-[100px] flex items-center justify-center font-bold text-xl border-r border-black last:border-r-0", getTextColor(total), total > 0 ? "bg-[#C6E0B4]" : (total < 0 ? "bg-[#F4B084]" : "bg-[#FFF2CC]"))}>
                 {total}
               </div>
             );

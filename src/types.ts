@@ -26,6 +26,7 @@ export type TOWSMatrixData = {
   strengths: string[];
   weaknesses: string[];
   scores: Record<string, number | string>; // key: "rowType-rowIndex-colType-colIndex"
+  notes: Record<string, string>; // key: "rowType-rowIndex-colType-colIndex"
 };
 
 export type PortersForceData = {

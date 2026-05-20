@@ -36,7 +36,6 @@ class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}
   }
 }
 
-import { Download, FileText, Settings2, Trash2, Files, LogOut, ChevronDown } from 'lucide-react';
 import { toPng, toJpeg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { cn } from '@/src/lib/utils';
@@ -841,24 +840,24 @@ function AppContent() {
             />
           </div>
           
-          <div className="flex-1 overflow-hidden relative">
-            <div className="flex items-center gap-2 p-4 overflow-x-auto no-scrollbar scroll-smooth">
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="flex items-center gap-1 bg-gray-100/50 p-1.5 rounded-2xl border border-gray-200/50">
               {(['PESTEL', 'McKinsey', 'VRIO', 'PORTER', 'TOWS'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={cn(
-                    "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 cursor-pointer whitespace-nowrap border-2",
+                    "px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 cursor-pointer whitespace-nowrap",
                     activeTab === tab 
-                      ? "bg-gray-900 text-white border-gray-900 shadow-lg shadow-gray-900/20" 
-                      : "text-gray-400 border-transparent hover:text-gray-900 hover:bg-gray-50"
+                      ? "bg-white text-gray-900 shadow-sm ring-1 ring-black/5" 
+                      : "text-gray-400 hover:text-gray-900 hover:bg-white/50"
                   )}
                 >
                   {tab === 'PESTEL' ? 'PESTEL Analysis' :
-                   tab === 'McKinsey' ? 'McKinsey 7-S Framework' :
-                   tab === 'VRIO' ? 'VRIO Framework' :
-                   tab === 'PORTER' ? "Porter's 5 Forces" :
-                   'Confrontation Matrix'}
+                   tab === 'McKinsey' ? 'McKinsey 7-S' :
+                   tab === 'VRIO' ? 'VRIO' :
+                   tab === 'PORTER' ? "Porter's 5" :
+                   'Confrontation'}
                 </button>
               ))}
             </div>
@@ -871,51 +870,48 @@ function AppContent() {
                   setSelectedGroup(null);
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all group relative cursor-pointer font-bold text-xs uppercase tracking-widest border-2 border-transparent hover:border-blue-100"
+              className="flex items-center gap-2 px-4 py-2.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all group relative cursor-pointer font-black text-[10px] uppercase tracking-widest"
               title="Exit Session"
             >
-              <LogOut size={18} strokeWidth={3} />
+              <span className="material-icons text-[20px]">logout</span>
               <span className="hidden xl:inline">Exit Session</span>
-              <span className="xl:hidden absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                Exit Session
-              </span>
             </button>
+            
             <button
               onClick={clearData}
-              className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all group relative cursor-pointer border-2 border-transparent hover:border-red-100"
-              title="Reset current worksheet"
+              className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all group relative cursor-pointer"
+              title="Clear current worksheet"
             >
-              <Trash2 size={20} />
-              <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                Clear Worksheet
-              </span>
+              <span className="material-icons text-[22px]">delete_sweep</span>
             </button>
+
             <button
               onClick={exportPDF}
               disabled={isExporting}
-              className="px-6 py-3 bg-white border-2 border-gray-100 text-gray-900 rounded-xl font-bold flex items-center gap-2 hover:border-gray-900 transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
+              className="px-5 py-2.5 bg-white border border-gray-200 text-gray-900 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:border-gray-900 transition-all disabled:opacity-50 active:scale-95 cursor-pointer shadow-xs"
             >
               {isExporting && !isExportingAll ? (
                 <div className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin" />
               ) : (
-                <Download size={20} />
+                <span className="material-icons text-[18px]">file_download</span>
               )}
-              Export Tab
+              Tab
             </button>
+
             <button
               onClick={exportAllPDF}
               disabled={isExportingAll}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 cursor-pointer"
+              className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 cursor-pointer"
             >
               {isExportingAll ? (
                 <span className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Generating Full Report...
+                  Generating...
                 </span>
               ) : (
                 <>
-                  <Files size={20} />
-                  Export Full Report
+                  <span className="material-icons text-[18px]">auto_stories</span>
+                  Report
                 </>
               )}
             </button>
@@ -1148,8 +1144,8 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
               <option value="1">Positive (+1)</option>
               <option value="2">Very Positive (+2)</option>
             </select>
-            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
-              <ChevronDown size={12} className={getTextColor(score)} strokeWidth={3} />
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 flex items-center">
+              <span className={cn("material-icons text-[14px]", getTextColor(score))}>expand_more</span>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, FormEvent, Component, ErrorInfo, ReactNode } from 'react';
-import ProfessorDashboard from './ProfessorDashboard';
+import { useState, useEffect, useRef, Component, ErrorInfo, ReactNode } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 
 // Error Boundary Component for stability
 class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}> {
@@ -24,7 +24,7 @@ class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}
           <p className="text-gray-600 mb-8">We've encountered an unexpected error. Please try refreshing the page.</p>
           <button 
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-brand-blue text-white rounded-xl font-bold shadow-lg hover:bg-brand-blue/90 transition-all"
+            className="px-6 py-3 bg-brand-blue text-white rounded-xl font-bold shadow-lg hover:bg-brand-blue/90 transition-all cursor-pointer"
           >
             Refresh Page
           </button>
@@ -35,34 +35,15 @@ class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}
     return this.props.children;
   }
 }
-import { motion, AnimatePresence } from 'motion/react';
-import { Download, FileText, Settings2, Trash2, Users, CircleDollarSign, Gem, Files, Network, ChevronUp, ChevronDown, LogOut, ArrowRight } from 'lucide-react';
+
+import { Download, FileText, Settings2, Trash2, Files, Network } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { cn } from '@/src/lib/utils';
 import { MetaData, PESTELData, McKinsey7SData, VRIOAnalysisData, TOWSMatrixData, PortersFiveForcesData } from './types';
 
-// Access Control Component
-import { AccessScreen } from './components/AccessUI';
-
-
 // Components
 const CorporateHeader = ({ meta, setMeta, hideMeta = false }: { meta: MetaData; setMeta: (m: MetaData) => void; hideMeta?: boolean }) => {
-  const removeParticipant = (nameToRemove: string) => {
-    setMeta({
-      ...meta,
-      participants: meta.participants.filter(p => p !== nameToRemove)
-    });
-  };
-
-  const addParticipant = (name: string) => {
-    if (!name.trim() || meta.participants.includes(name.trim())) return;
-    setMeta({
-      ...meta,
-      participants: [...meta.participants, name.trim()]
-    });
-  };
-
   return (
     <div className={cn("flex flex-col md:flex-row justify-between border-b-2 border-gray-100 pb-8 mb-8 gap-8", hideMeta && "border-none mb-4")}>
       <div className="flex items-start gap-4">
@@ -102,47 +83,6 @@ const CorporateHeader = ({ meta, setMeta, hideMeta = false }: { meta: MetaData; 
               className="font-semibold text-gray-700 outline-hidden bg-transparent border-b border-dashed border-gray-300 w-full"
               placeholder="Enter company name..."
             />
-          </div>
-
-          <div className="flex flex-col border-b border-gray-200 col-span-2">
-            <span className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">Group</span>
-            <input 
-              type="text" 
-              value={meta.group} 
-              onChange={(e) => setMeta({...meta, group: e.target.value})}
-              className="font-semibold text-gray-700 outline-hidden bg-transparent border-b border-dashed border-gray-300 w-full"
-              placeholder="Group name..."
-            />
-          </div>
-
-          <div className="flex flex-col border-b border-gray-200 col-span-2 py-2">
-            <div className="flex justify-between items-center mb-1">
-                <span className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">Team Members ({meta.participants.length})</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-                {meta.participants.map((name, index) => (
-                    <div key={index} className="group flex items-center gap-1.5 px-2 py-1 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 transition-all">
-                        <span className="font-bold text-[11px]">{name}</span>
-                        <button 
-                            onClick={() => removeParticipant(name)}
-                            className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-100 hover:text-red-600 rounded transition-all no-print"
-                        >
-                            <Trash2 size={10} />
-                        </button>
-                    </div>
-                ))}
-                <input 
-                    type="text"
-                    placeholder="+ Add Member"
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            addParticipant(e.currentTarget.value);
-                            e.currentTarget.value = '';
-                        }
-                    }}
-                    className="text-[11px] font-bold text-brand-blue outline-none bg-transparent border-b border-dashed border-brand-blue/30 w-24 focus:w-32 transition-all no-print"
-                />
-            </div>
           </div>
         </div>
       )}
@@ -440,19 +380,13 @@ export default function App() {
 }
 
 function AppContent() {
-  if (window.location.pathname === '/professor-dashboard') {
-    return <ProfessorDashboard />;
-  }
-
-  const [isAuthorized, setIsAuthorized] = useState(() => {
-    return localStorage.getItem('sdp_authorized') === 'true';
-  });
   const [activeTab, setActiveTab] = useState<'PESTEL' | 'McKinsey' | 'VRIO' | 'TOWS' | 'PORTER'>('PESTEL');
   const [activeForce, setActiveForce] = useState<keyof PortersFiveForcesData>('suppliers');
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingAll, setIsExportingAll] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+  
   const [pestelData, setPestelData] = useState<PESTELData[]>(
     ['Political', 'Economic', 'Social', 'Technological', 'Environmental', 'Legal'].map(cat => ({
       id: cat,
@@ -463,7 +397,9 @@ function AppContent() {
       potential: ''
     }))
   );
+  
   const [mckinseyData, setMckinseyData] = useState<McKinsey7SData>({});
+  
   const [vrioAnalysisData, setVrioAnalysisData] = useState<VRIOAnalysisData[]>(
     Array.from({ length: 8 }, (_, i) => ({
       id: `res-${i}`,
@@ -476,7 +412,9 @@ function AppContent() {
       o: ''
     }))
   );
+  
   const [vrioNotes, setVrioNotes] = useState('');
+  
   const [towsData, setTowsData] = useState<TOWSMatrixData>({
     opportunities: Array(3).fill(''),
     threats: Array(3).fill(''),
@@ -484,6 +422,7 @@ function AppContent() {
     weaknesses: Array(3).fill(''),
     scores: {}
   });
+  
   const [portersData, setPortersData] = useState<PortersFiveForcesData>({
     newEntrants: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 3 }, () => ({ col1: '', col2: '', col3: '' })) },
     buyers: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 5 }, () => ({ col1: '', col2: '', col3: '' })) },
@@ -499,153 +438,55 @@ function AppContent() {
       cohort: '',
       date: '',
       companyName: '',
-      participants: [],
-      group: ''
+      participants: []
     };
   });
 
-  // Persist auth and meta to localStorage
-  useEffect(() => {
-    localStorage.setItem('sdp_authorized', isAuthorized.toString());
-    localStorage.setItem('sdp_meta', JSON.stringify(meta));
-  }, [isAuthorized, meta]);
-
   const updateTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Load group data from localStorage when group changes
+  // Load data from localStorage on initial mount
   useEffect(() => {
-    if (!meta.group) return;
-
     setIsLoading(true);
     try {
-      const saved = localStorage.getItem(`sdp_group_${meta.group}`);
+      const saved = localStorage.getItem('sdp_local_data');
       if (saved) {
         const parsed = JSON.parse(saved);
-        
-        // Merge metadata
-        if (parsed.meta) {
-          setMeta(prev => {
-            const incomingParticipants = parsed.meta.participants || [];
-            const mergedParticipants = Array.from(new Set([...prev.participants, ...incomingParticipants])).filter(Boolean);
-            return {
-              ...prev,
-              ...parsed.meta,
-              participants: mergedParticipants
-            };
-          });
-        }
-        
         if (parsed.pestel) setPestelData(parsed.pestel);
         if (parsed.mckinsey) setMckinseyData(parsed.mckinsey);
         if (parsed.vrio) setVrioAnalysisData(parsed.vrio);
         if (parsed.vrioNotes !== undefined) setVrioNotes(parsed.vrioNotes);
         if (parsed.tows) setTowsData(parsed.tows);
         if (parsed.porters) setPortersData(parsed.porters);
-      } else {
-        // Reset state for new groups
-        setPestelData(
-          ['Political', 'Economic', 'Social', 'Technological', 'Environmental', 'Legal'].map(cat => ({
-            id: cat,
-            category: cat as any,
-            description: '',
-            impact: '',
-            probability: '',
-            potential: ''
-          }))
-        );
-        setMckinseyData({});
-        setVrioAnalysisData(
-          Array.from({ length: 8 }, (_, i) => ({
-            id: `res-${i}`,
-            resource: '',
-            type: '',
-            detail: '',
-            v: '',
-            r: '',
-            i: '',
-            o: ''
-          }))
-        );
-        setVrioNotes('');
-        setTowsData({
-          opportunities: Array(3).fill(''),
-          threats: Array(3).fill(''),
-          strengths: Array(3).fill(''),
-          weaknesses: Array(3).fill(''),
-          scores: {}
-        });
-        setPortersData({
-          newEntrants: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 3 }, () => ({ col1: '', col2: '', col3: '' })) },
-          buyers: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 5 }, () => ({ col1: '', col2: '', col3: '' })) },
-          suppliers: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 5 }, () => ({ col1: '', col2: '', col3: '' })) },
-          substitutes: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 5 }, () => ({ col1: '', col2: '', col3: '' })) },
-          rivalry: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 8 }, () => ({ col1: '', col2: '', col3: '', col4: '' })) },
-        });
+        if (parsed.meta) setMeta(parsed.meta);
       }
     } catch (err) {
-      console.error('Error loading group data from localStorage:', err);
+      console.error('Error loading data from localStorage:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [meta.group]);
-
-  // Listen to Storage events for multi-tab synchronization
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === `sdp_group_${meta.group}` && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          
-          if (parsed.meta) {
-            setMeta(prev => {
-              const incomingParticipants = parsed.meta.participants || [];
-              const mergedParticipants = Array.from(new Set([...prev.participants, ...incomingParticipants])).filter(Boolean);
-              return { ...prev, ...parsed.meta, participants: mergedParticipants };
-            });
-          }
-          if (parsed.pestel) setPestelData(parsed.pestel);
-          if (parsed.mckinsey) setMckinseyData(parsed.mckinsey);
-          if (parsed.vrio) setVrioAnalysisData(parsed.vrio);
-          if (parsed.vrioNotes !== undefined) setVrioNotes(parsed.vrioNotes);
-          if (parsed.tows) setTowsData(parsed.tows);
-          if (parsed.porters) setPortersData(parsed.porters);
-        } catch (err) {
-          console.error('Error parsing sync storage event:', err);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [meta.group]);
-
-  const handleAccess = (group: string) => {
-    setMeta(prev => ({ ...prev, group }));
-    setIsAuthorized(true);
-  };
+  }, []);
 
   // Debounced save to localStorage
   useEffect(() => {
-    if (!isAuthorized || !meta.group || isLoading) {
-      return;
-    }
+    if (isLoading) return;
 
     if (updateTimeout.current) clearTimeout(updateTimeout.current);
 
     updateTimeout.current = setTimeout(() => {
-      const currentState = { 
-        meta, 
-        pestel: pestelData, 
-        mckinsey: mckinseyData, 
-        vrio: vrioAnalysisData, 
-        vrioNotes, 
-        tows: towsData, 
+      const currentState = {
+        meta,
+        pestel: pestelData,
+        mckinsey: mckinseyData,
+        vrio: vrioAnalysisData,
+        vrioNotes,
+        tows: towsData,
         porters: portersData,
         updatedAt: new Date().toISOString()
       };
       
       try {
-        localStorage.setItem(`sdp_group_${meta.group}`, JSON.stringify(currentState));
+        localStorage.setItem('sdp_local_data', JSON.stringify(currentState));
+        localStorage.setItem('sdp_meta', JSON.stringify(meta));
       } catch (err) {
         console.error('Failed to save data to localStorage:', err);
       }
@@ -654,8 +495,7 @@ function AppContent() {
     return () => {
       if (updateTimeout.current) clearTimeout(updateTimeout.current);
     };
-  }, [meta, pestelData, mckinseyData, vrioAnalysisData, vrioNotes, towsData, portersData, isAuthorized, isLoading]);
-
+  }, [meta, pestelData, mckinseyData, vrioAnalysisData, vrioNotes, towsData, portersData, isLoading]);
 
   const exportPDF = async () => {
     if (!containerRef.current) return;
@@ -663,8 +503,6 @@ function AppContent() {
 
     try {
       const element = containerRef.current;
-      
-      // Use html-to-image instead of html2canvas for better modern CSS support
       const imgData = await toPng(element, {
         quality: 1.0,
         pixelRatio: 2,
@@ -690,8 +528,6 @@ function AppContent() {
       const pageRatio = pageWidth / pageHeight;
 
       let finalWidth, finalHeight;
-
-      // Fit to page while maintaining aspect ratio
       if (imgRatio > pageRatio) {
           finalWidth = pageWidth;
           finalHeight = pageWidth / imgRatio;
@@ -700,7 +536,6 @@ function AppContent() {
           finalWidth = pageHeight * imgRatio;
       }
 
-      // Calculate centering
       const x = (pageWidth - finalWidth) / 2;
       const y = (pageHeight - finalHeight) / 2;
       
@@ -724,33 +559,6 @@ function AppContent() {
     });
 
     try {
-      const exportContainer = document.createElement('div');
-      exportContainer.style.position = 'absolute';
-      exportContainer.style.left = '-9999px';
-      exportContainer.style.top = '0';
-      exportContainer.style.width = '297mm'; // A4 landscape width
-      document.body.appendChild(exportContainer);
-
-      const renderTab = async (tab: string, force?: string) => {
-        const root = document.createElement('div');
-        root.className = 'bg-white p-8';
-        root.style.width = '297mm';
-        exportContainer.innerHTML = '';
-        exportContainer.appendChild(root);
-
-        // This is a simplified approach: we render a static version of the components
-        // For a more robust solution, we'd use a dedicated ExportComponent
-        // but for now, we'll use the existing components with the current data.
-        
-        // We'll use a temporary React root if needed, but since we have the data, 
-        // we can just pass it to the component functions if they were exported.
-        // Since they are not, we'll continue with the "tab switching" but optimized.
-      };
-
-      // Actually, a better way without refactoring every component to be exportable:
-      // We'll use a hidden "PrintContainer" that is always in the DOM but hidden.
-      // I'll add this to the main render.
-      
       const printRef = document.getElementById('full-report-print-container');
       if (!printRef) throw new Error('Print container not found');
 
@@ -759,8 +567,6 @@ function AppContent() {
 
       for (let i = 0; i < sections.length; i++) {
         const section = sections[i] as HTMLElement;
-        
-        // Ensure section is visible for capture but still hidden from user
         section.style.display = 'block';
         
         const imgData = await toPng(section, {
@@ -790,27 +596,15 @@ function AppContent() {
         const x = (pageWidth - finalWidth) / 2;
         const y = (pageHeight - finalHeight) / 2;
         pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
-        
-        // Hide it back
         section.style.display = 'none';
       }
 
       pdf.save(`Full_Strategy_Report_${meta.companyName || 'Export'}.pdf`);
     } catch (error) {
       console.error('Export all failed:', error);
-      setSyncError('Failed to generate full report. Please try again.');
     } finally {
       setIsExporting(false);
       setIsExportingAll(false);
-    }
-  };
-
-  const handleLogout = () => {
-
-    if (confirm('Are you sure you want to exit this session? Your data will remain saved in the cloud.')) {
-      localStorage.removeItem('sdp_authorized');
-      localStorage.removeItem('sdp_meta');
-      window.location.reload();
     }
   };
 
@@ -849,19 +643,15 @@ function AppContent() {
         });
       } else if (activeTab === 'PORTER') {
         setPortersData({
-          newEntrants: { analysis: '', impact: 'Medium', scorecard: {}, further: Array(3).fill({ col1: '', col2: '', col3: '' }) },
-          buyers: { analysis: '', impact: 'Medium', scorecard: {}, further: Array(5).fill({ col1: '', col2: '', col3: '' }) },
-          suppliers: { analysis: '', impact: 'Medium', scorecard: {}, further: Array(5).fill({ col1: '', col2: '', col3: '' }) },
-          substitutes: { analysis: '', impact: 'Medium', scorecard: {}, further: Array(5).fill({ col1: '', col2: '', col3: '' }) },
-          rivalry: { analysis: '', impact: 'Medium', scorecard: {}, further: Array(8).fill({ col1: '', col2: '', col3: '', col4: '' }) },
+          newEntrants: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 3 }, () => ({ col1: '', col2: '', col3: '' })) },
+          buyers: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 5 }, () => ({ col1: '', col2: '', col3: '' })) },
+          suppliers: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 5 }, () => ({ col1: '', col2: '', col3: '' })) },
+          substitutes: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 5 }, () => ({ col1: '', col2: '', col3: '' })) },
+          rivalry: { analysis: '', impact: 'Medium', scorecard: {}, further: Array.from({ length: 8 }, () => ({ col1: '', col2: '', col3: '', col4: '' })) },
         });
       }
     }
   };
-
-  if (!isAuthorized) {
-    return <AccessScreen onAccess={handleAccess} />;
-  }
 
   if (isLoading) {
     return (
@@ -873,107 +663,66 @@ function AppContent() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 py-12 px-4 selection:bg-brand-blue selection:text-white relative">
-      {/* Professor Dashboard Link */}
-      <a href="/professor-dashboard" className="fixed bottom-4 right-4 text-[10px] text-gray-300 hover:text-gray-500 uppercase tracking-widest no-print">Admin</a>
+    <div className="min-h-screen bg-gray-50/50 p-4 md:p-8 font-sans selection:bg-brand-blue/10">
+      <div className="max-w-[1400px] mx-auto bg-white rounded-[32px] shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden min-h-[90vh] flex flex-col">
+        {/* Navigation Header */}
+        <div className="flex flex-col lg:flex-row border-b border-gray-100">
+          <div className="lg:w-72 p-8 border-r border-gray-100 flex items-center justify-between lg:justify-start gap-4 bg-gray-50/30">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-brand-blue rounded-xl flex items-center justify-center shadow-lg shadow-brand-blue/20">
+                <Settings2 className="text-white" size={20} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-black tracking-tighter text-gray-900">SDP<span className="text-brand-blue">Suite</span></span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Local Mode</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex-1 flex flex-wrap items-center justify-center gap-1 p-4">
+            {(['PESTEL', 'McKinsey', 'VRIO', 'TOWS', 'PORTER'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer",
+                  activeTab === tab 
+                    ? "bg-gray-900 text-white shadow-xl shadow-gray-900/10 scale-105" 
+                    : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                )}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
 
-      {/* Controls */}
-      <div className="max-w-[297mm] mx-auto mb-6 flex flex-wrap gap-4 items-center justify-between no-print">
-        <div className="flex bg-white rounded-xl p-1 shadow-sm border border-gray-200">
-          <button
-            onClick={() => setActiveTab('PESTEL')}
-            className={cn(
-              "px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2",
-              activeTab === 'PESTEL' 
-                ? "bg-brand-blue text-white shadow-md" 
-                : "bg-transparent text-gray-500 hover:text-gray-800"
-            )}
-          >
-            <FileText size={18} />
-            PESTEL Analysis
-          </button>
-          <button
-            onClick={() => setActiveTab('McKinsey')}
-            className={cn(
-              "px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2",
-              activeTab === 'McKinsey' 
-                ? "bg-brand-peach text-gray-900 shadow-md" 
-                : "bg-transparent text-gray-500 hover:text-gray-800"
-            )}
-          >
-            <Settings2 size={18} />
-            McKinsey 7-S
-          </button>
-          <button
-            onClick={() => setActiveTab('VRIO')}
-            className={cn(
-              "px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2",
-              activeTab === 'VRIO' 
-                ? "bg-gray-800 text-white shadow-md" 
-                : "bg-transparent text-gray-500 hover:text-gray-800"
-            )}
-          >
-            <Settings2 size={18} />
-            VRIO Framework
-          </button>
-          <button
-            onClick={() => setActiveTab('TOWS')}
-            className={cn(
-              "px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2",
-              activeTab === 'TOWS' 
-                ? "bg-[#FFE082] text-gray-900 shadow-md" 
-                : "bg-transparent text-gray-500 hover:text-gray-800"
-            )}
-          >
-            <Network size={18} />
-            Confrontation Matrix
-          </button>
-          <button
-            onClick={() => setActiveTab('PORTER')}
-            className={cn(
-              "px-6 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2",
-              activeTab === 'PORTER' 
-                ? "bg-indigo-600 text-white shadow-md" 
-                : "bg-transparent text-gray-500 hover:text-gray-800"
-            )}
-          >
-            <Files size={18} />
-            Porter's 5 Forces
-          </button>
-        </div>
-
-        <div className="flex gap-2">
+          <div className="p-4 lg:pr-8 flex items-center gap-3 border-t lg:border-t-0 lg:border-l border-gray-100">
             <button
               onClick={clearData}
-              className="p-3 bg-white text-red-500 hover:bg-red-50 rounded-xl transition-colors shadow-sm border border-gray-200 group relative"
-              title="Clear data"
+              className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all group relative cursor-pointer"
+              title="Reset current worksheet"
             >
               <Trash2 size={20} />
               <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                Clear Current Sheet
+                Clear Worksheet
               </span>
             </button>
             <button
               onClick={exportPDF}
               disabled={isExporting}
-              className="px-6 py-3 bg-gray-800 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-gray-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="px-6 py-3 bg-white border-2 border-gray-100 text-gray-900 rounded-xl font-bold flex items-center gap-2 hover:border-gray-900 transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
             >
               {isExporting && !isExportingAll ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Exporting...
-                </span>
+                <div className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin" />
               ) : (
-                <>
-                  <Download size={20} />
-                  Export Page
-                </>
+                <Download size={20} />
               )}
+              Export Tab
             </button>
             <button
               onClick={exportAllPDF}
-              disabled={isExporting}
-              className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              disabled={isExportingAll}
+              className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 cursor-pointer"
             >
               {isExportingAll ? (
                 <span className="flex items-center gap-2">
@@ -984,94 +733,80 @@ function AppContent() {
                 <>
                   <Files size={20} />
                   Export Full Report
-                  </>
-                  )}
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="p-3 bg-white text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all shadow-sm border border-gray-200 group relative"
-                    title="Exit session"
-                  >
-                    <LogOut size={20} />
-                    <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                      Exit Session
-                    </span>
-                  </button>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 overflow-y-auto p-8 lg:p-12 bg-white relative">
+          <div className="max-w-6xl mx-auto">
+            {/* Header with Title and Metadata */}
+            <div ref={containerRef} className="worksheet-container relative overflow-hidden bg-white">
+              <CorporateHeader meta={meta} setMeta={setMeta} hideMeta={false} />
+
+              {activeTab === 'TOWS' && <ConfrontationMatrixGuide />}
+
+              <div className="mb-12">
+                <div className="flex items-end justify-between border-b-2 border-gray-50 pb-6">
+                  <h2 className={cn(
+                    "text-4xl font-black uppercase tracking-tighter text-gray-900 inline-block",
+                    activeTab === 'VRIO' ? "border-b-[12px] border-black pb-2" : 
+                    activeTab === 'TOWS' ? "border-b-[12px] border-[#FFD666] pb-2" :
+                    activeTab === 'PORTER' ? "border-b-[12px] border-indigo-600 pb-2" :
+                    ""
+                  )}>
+                    {activeTab === 'PESTEL' ? 'PESTEL Worksheet' : 
+                     activeTab === 'McKinsey' ? 'McKinsey 7-S Worksheet' : 
+                     activeTab === 'VRIO' ? 'VRIO Framework' :
+                     activeTab === 'TOWS' ? 'Confrontation Matrix' :
+                     "Porter's Five Forces"}
+                  </h2>
+                  <div className="text-[10px] font-mono text-gray-400 font-bold tracking-widest bg-gray-50 px-3 py-1 rounded-full">
+                    FRAMEWORK_ID: {
+                      activeTab === 'PESTEL' ? 'ENV_MACRO_01' : 
+                      activeTab === 'McKinsey' ? 'ORG_ALIG_02' : 
+                      activeTab === 'VRIO' ? 'COMP_ADV_03' :
+                      activeTab === 'TOWS' ? 'STRAT_MAT_04' :
+                      'IND_COMP_05'
+                    }
                   </div>
-                  </div>
+                </div>
+              </div>
 
-                  {/* Main Worksheet Area */}
-                  <div className="overflow-x-auto pb-12">
-                  <div ref={containerRef} className="worksheet-container relative overflow-hidden">
-                  <CorporateHeader meta={meta} setMeta={setMeta} hideMeta={false} />
-
-                  {activeTab === 'TOWS' && <ConfrontationMatrixGuide />}
-
-                  <div className="mb-6">
-                  <div className="flex items-end justify-between">
-                    <h2 className={cn(
-                      "text-4xl font-bold uppercase tracking-tight text-gray-900 inline-block",
-                      activeTab === 'VRIO' ? "border-b-[12px] border-black pb-2" : 
-                      activeTab === 'TOWS' ? "border-b-[12px] border-[#FFD666] pb-2" :
-                      activeTab === 'PORTER' ? "border-b-[12px] border-indigo-600 pb-2" :
-                      "border-b-8 border-gray-100"
-                    )}>
-                      {activeTab === 'PESTEL' ? 'PESTEL Worksheet' : 
-                       activeTab === 'McKinsey' ? 'McKinsey 7-S Worksheet' : 
-                       activeTab === 'VRIO' ? 'VRIO Framework' :
-                       activeTab === 'TOWS' ? 'Confrontation Matrix' :
-                       "Porter's Five Forces"}
-                    </h2>
-                    <div className="text-xs font-mono text-gray-400">
-                      FRAMEWORK_ID: {
-                        activeTab === 'PESTEL' ? 'ENV_MACRO_01' : 
-                        activeTab === 'McKinsey' ? 'ORG_ALIG_02' : 
-                        activeTab === 'VRIO' ? 'COMP_ADV_03' :
-                        activeTab === 'TOWS' ? 'STRAT_MAT_04' :
-                        'IND_COMP_05'
-                      }
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  {activeTab === 'PESTEL' ? (
+                    <PESTELWorksheet data={pestelData} setData={setPestelData} />
+                  ) : activeTab === 'McKinsey' ? (
+                    <McKinseyWorksheet data={mckinseyData} setData={setMckinseyData} />
+                  ) : activeTab === 'VRIO' ? (
+                    <div className="space-y-12">
+                      <VRIOFramework />
+                      <VRIOAnalysisTable data={vrioAnalysisData} setData={setVrioAnalysisData} notes={vrioNotes} setNotes={setVrioNotes} />
                     </div>
-                  </div>
-                  </div>
-
-
-                  <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {activeTab === 'PESTEL' ? (
-                      <PESTELWorksheet data={pestelData} setData={setPestelData} />
-                    ) : activeTab === 'McKinsey' ? (
-                      <McKinseyWorksheet data={mckinseyData} setData={setMckinseyData} />
-                    ) : activeTab === 'VRIO' ? (
-                      <div className="space-y-12">
-                        <VRIOFramework />
-                        <VRIOAnalysisTable data={vrioAnalysisData} setData={setVrioAnalysisData} notes={vrioNotes} setNotes={setVrioNotes} />
-                      </div>
-                    ) : activeTab === 'TOWS' ? (
-                      <div className="space-y-12">
-                        <TOWSWorksheet data={towsData} setData={setTowsData} meta={meta} setMeta={setMeta} />
-                      </div>
-                    ) : (
-                      <PortersFiveForces data={portersData} setData={setPortersData} activeForce={activeForce} setActiveForce={setActiveForce} />
-                    )}
-                  </motion.div>
-                  </AnimatePresence>
-          
-          {/* Watermark-like info for screen only */}
-          {!isExporting && (
-            <div className="absolute top-2 right-2 text-[8px] text-gray-200 pointer-events-none uppercase tracking-tighter sm:block hidden">
-              Current Session
+                  ) : activeTab === 'TOWS' ? (
+                    <div className="space-y-12">
+                      <TOWSWorksheet data={towsData} setData={setTowsData} meta={meta} setMeta={setMeta} />
+                    </div>
+                  ) : (
+                    <PortersFiveForces data={portersData} setData={setPortersData} activeForce={activeForce} setActiveForce={setActiveForce} />
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
-      {/* Hidden container for full report generation - avoids UI flicker */}
+      {/* Hidden container for full report generation */}
       <div id="full-report-print-container" className="hidden" aria-hidden="true">
         <div className="print-section bg-white p-12 w-[297mm]">
           <CorporateHeader meta={meta} setMeta={setMeta} />
@@ -1098,7 +833,6 @@ function AppContent() {
             <TOWSWorksheet data={towsData} setData={() => {}} meta={meta} setMeta={() => {}} />
           </div>
         </div>
-        {/* Porter's 5 Forces - Each force gets a page */}
         {(['suppliers', 'buyers', 'newEntrants', 'substitutes', 'rivalry'] as const).map(force => (
           <div key={force} className="print-section bg-white p-12 w-[297mm]">
             <CorporateHeader meta={meta} setMeta={setMeta} />
@@ -1107,8 +841,7 @@ function AppContent() {
           </div>
         ))}
       </div>
-
-    </main>
+    </div>
   );
 }
 
@@ -1120,7 +853,6 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
   };
 
   const updateScore = (rowType: 'strengths' | 'weaknesses', rowIndex: number, colType: 'opportunities' | 'threats', colIndex: number, value: string) => {
-    // Basic sanitization: allow empty, -, +, and numbers
     if (value !== "" && value !== "-" && value !== "+" && isNaN(parseInt(value))) return;
     
     let finalValue: string | number = value;
@@ -1171,9 +903,9 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
   const getBgColor = (scoreValue: string | number) => {
     const score = parseInt(String(scoreValue));
     if (isNaN(score)) return 'bg-white';
-    if (score >= 1) return 'bg-[#C6E0B4]'; // Positive / Very positive (Unified Green)
-    if (score === 0) return 'bg-[#FFF2CC]'; // Neutral (Yellow)
-    if (score <= -1) return 'bg-[#F4B084]'; // Negative / Very negative (Unified Red/Orange)
+    if (score >= 1) return 'bg-[#C6E0B4]';
+    if (score === 0) return 'bg-[#FFF2CC]';
+    if (score <= -1) return 'bg-[#F4B084]';
     return 'bg-white';
   };
 
@@ -1360,7 +1092,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
       <div className="mt-12 flex gap-12 items-start">
         <div className="flex flex-col w-64 border border-black text-xs font-bold shadow-sm">
           <div className="grid grid-cols-[1fr_60px] border-b border-black bg-[#F4B084]">
-            <span className="p-2 px-4 text-red-900 text-shadow-sm italic">Negative / Very Negative</span>
+            <span className="p-2 px-4 text-red-900 italic text-shadow-sm">Negative / Very Negative</span>
             <span className="p-2 text-center border-l border-black">-1 / -2</span>
           </div>
           <div className="grid grid-cols-[1fr_60px] border-b border-black bg-[#FFF2CC]">
@@ -1810,13 +1542,6 @@ const PortersFiveForces = ({
     });
   };
 
-  const updateAnalysis = (field: 'analysis' | 'impact', val: string) => {
-    setData({
-      ...data,
-      [activeForce]: { ...currentData, [field]: val }
-    });
-  };
-
   return (
     <div className="space-y-8">
       {/* Sub-navigation */}
@@ -1826,7 +1551,7 @@ const PortersFiveForces = ({
             key={key}
             onClick={() => setActiveForce(key as any)}
             className={cn(
-              "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+              "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer",
               activeForce === key 
                 ? "bg-white text-gray-900 shadow-sm ring-1 ring-black/5" 
                 : "text-gray-400 hover:text-gray-600"
@@ -1864,7 +1589,7 @@ const PortersFiveForces = ({
                   <button
                     onClick={() => updateScorecard(idx, true)}
                     className={cn(
-                      "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border-2",
+                      "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border-2 cursor-pointer",
                       currentData.scorecard[idx] === true 
                         ? "bg-green-600 border-green-600 text-white shadow-sm" 
                         : "bg-white border-gray-300 text-gray-400 hover:border-green-500 hover:text-green-600"
@@ -1875,7 +1600,7 @@ const PortersFiveForces = ({
                   <button
                     onClick={() => updateScorecard(idx, false)}
                     className={cn(
-                      "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border-2",
+                      "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border-2 cursor-pointer",
                       currentData.scorecard[idx] === false 
                         ? "bg-red-600 border-red-600 text-white shadow-sm" 
                         : "bg-white border-gray-300 text-gray-400 hover:border-red-500 hover:text-red-600"
@@ -1948,11 +1673,292 @@ const PortersFiveForces = ({
             </table>
           </div>
         </div>
-
-
       </div>
     </div>
   );
 };
 
+const VRIOAnalysisTable = ({ 
+  data, 
+  setData, 
+  notes, 
+  setNotes 
+}: { 
+  data: VRIOAnalysisData[]; 
+  setData: (d: VRIOAnalysisData[]) => void;
+  notes: string;
+  setNotes: (n: string) => void;
+}) => {
+  const updateItem = (id: string, field: keyof VRIOAnalysisData, value: string) => {
+    setData(data.map(item => item.id === id ? { ...item, [field]: value } : item));
+  };
 
+  return (
+    <div className="space-y-4">
+      <h3 className="text-2xl font-bold uppercase tracking-tight text-gray-900 border-b-4 border-gray-100 inline-block">
+        VRIO Analysis
+      </h3>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse border-2 border-black table-fixed">
+          <thead>
+            <tr className="bg-white">
+              <th className="border border-black p-4 text-center font-bold text-sm bg-gray-50/50">Resources</th>
+              <th className="border border-black p-4 text-center font-bold text-sm bg-gray-50/50">Type</th>
+              <th className="border border-black p-4 text-center font-bold text-sm bg-gray-50/50 w-1/4">Detail</th>
+              <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-20">
+                <div className="text-base">V</div>
+                <div className="text-[8px] font-normal leading-tight lowercase">is it valuable?</div>
+              </th>
+              <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-20">
+                <div className="text-base">R</div>
+                <div className="text-[8px] font-normal leading-tight lowercase">is it rare?</div>
+              </th>
+              <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-20">
+                <div className="text-base">I</div>
+                <div className="text-[8px] font-normal leading-tight lowercase">is it hard to imitate?</div>
+              </th>
+              <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-28">
+                <div className="text-base">O</div>
+                <div className="text-[8px] font-normal leading-tight">How organized is the company around this?</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((item) => (
+              <tr key={item.id} className="h-12">
+                <td className="border border-black p-0">
+                  <input
+                    type="text"
+                    value={item.resource}
+                    onChange={(e) => updateItem(item.id, 'resource', e.target.value)}
+                    className="w-full h-full px-4 text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
+                  />
+                </td>
+                <td className="border border-black p-0">
+                  <input
+                    type="text"
+                    value={item.type}
+                    onChange={(e) => updateItem(item.id, 'type', e.target.value)}
+                    className="w-full h-full px-4 text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
+                  />
+                </td>
+                <td className="border border-black p-0">
+                  <input
+                    type="text"
+                    value={item.detail}
+                    onChange={(e) => updateItem(item.id, 'detail', e.target.value)}
+                    className="w-full h-full px-4 text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
+                  />
+                </td>
+                <td className="border border-black p-0">
+                  <input
+                    type="text"
+                    value={item.v}
+                    onChange={(e) => updateItem(item.id, 'v', e.target.value)}
+                    className="w-full h-full text-center text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
+                  />
+                </td>
+                <td className="border border-black p-0">
+                  <input
+                    type="text"
+                    value={item.r}
+                    onChange={(e) => updateItem(item.id, 'r', e.target.value)}
+                    className="w-full h-full text-center text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
+                  />
+                </td>
+                <td className="border border-black p-0">
+                  <input
+                    type="text"
+                    value={item.i}
+                    onChange={(e) => updateItem(item.id, 'i', e.target.value)}
+                    className="w-full h-full text-center text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
+                  />
+                </td>
+                <td className="border border-black p-0">
+                  <input
+                    type="text"
+                    value={item.o}
+                    onChange={(e) => updateItem(item.id, 'o', e.target.value)}
+                    className="w-full h-full text-center text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="border border-black rounded-sm overflow-hidden">
+        <div className="bg-gray-50 border-b border-black px-4 py-2 text-sm font-bold">Notes</div>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          className="w-full min-h-[120px] p-4 text-sm bg-white outline-hidden resize-none translate-z-0"
+          placeholder="Enter additional analysis notes here..."
+        />
+      </div>
+    </div>
+  );
+};
+
+const VRIOFramework = () => {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] gap-0">
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center">
+          <div className="flex-1 flex items-center justify-center">
+            <img 
+              src="https://img.icons8.com/ios/100/money-bag.png" 
+              alt="Valuable" 
+              className="w-16 h-16 opacity-50 grayscale"
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT VALUABLE?</span>
+        </div>
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
+          <div className="flex-1 flex items-center justify-center">
+            <img 
+              src="https://img.icons8.com/ios/100/diamond--v1.png" 
+              alt="Rare" 
+              className="w-16 h-16 opacity-50 grayscale"
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT RARE?</span>
+        </div>
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
+          <div className="flex-1 flex items-center justify-center">
+            <img 
+              src="https://img.icons8.com/ios/100/copy.png" 
+              alt="Imitation" 
+              className="w-16 h-16 opacity-50 grayscale"
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight">IT IT DIFFICULT TO IMITATE?</span>
+        </div>
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
+          <div className="flex-1 flex items-center justify-center">
+            <img 
+              src="https://img.icons8.com/ios/100/settings.png" 
+              alt="Organized" 
+              className="w-16 h-16 opacity-50 grayscale"
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <span className="text-[11px] font-bold uppercase tracking-tight text-center leading-[1.1] text-gray-800 px-2">HOW ORGANIZED IS THE COMPANY AROUND THIS</span>
+        </div>
+        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
+          <div className="flex-1 flex items-center justify-center">
+            <img 
+              src="https://img.icons8.com/ios/100/goal--v1.png" 
+              alt="Result" 
+              className="w-16 h-16 opacity-50 grayscale"
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight px-4">WHAT IS THE OVERALL RESULT?</span>
+        </div>
+      </div>
+
+      <div className="space-y-4 pt-1">
+        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] border border-gray-200 h-18 bg-gray-50/30 overflow-hidden">
+          <div className="flex items-center justify-center gap-4 bg-white/80">
+            <div className="w-10 h-10 rounded-full border-2 border-red-400 flex items-center justify-center text-red-500 font-bold bg-white text-2xl">×</div>
+            <span className="text-gray-500 font-bold text-lg">No</span>
+          </div>
+          <div className="bg-white/80" />
+          <div className="bg-white/80" />
+          <div className="bg-white/80" />
+          <div className="bg-[#FF9B9B] flex items-center justify-center text-center font-bold text-sm px-6 leading-tight border-l border-gray-200">
+            Competitive Disadvantage
+          </div>
+        </div>
+
+        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] border border-gray-200 h-18 bg-gray-50/30 overflow-hidden">
+          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
+            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
+            <span className="text-gray-500 font-bold text-lg">Yes</span>
+          </div>
+          <div className="flex items-center justify-center gap-4 bg-white/80">
+            <div className="w-10 h-10 rounded-full border-2 border-red-400 flex items-center justify-center text-red-500 font-bold bg-white text-2xl">×</div>
+            <span className="text-gray-500 font-bold text-lg">No</span>
+          </div>
+          <div className="bg-white/80" />
+          <div className="bg-white/80" />
+          <div className="bg-[#EB9F7D] flex items-center justify-center text-center font-bold text-sm px-6 leading-tight border-l border-gray-200">
+            Competitive Parity
+          </div>
+        </div>
+
+        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] border border-gray-200 h-18 bg-gray-50/30 overflow-hidden">
+          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
+            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
+            <span className="text-gray-500 font-bold text-lg">Yes</span>
+          </div>
+          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
+            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
+            <span className="text-gray-500 font-bold text-lg">Yes</span>
+          </div>
+          <div className="flex items-center justify-center gap-4 bg-white/80">
+            <div className="w-10 h-10 rounded-full border-2 border-red-400 flex items-center justify-center text-red-500 font-bold bg-white text-2xl">×</div>
+            <span className="text-gray-500 font-bold text-lg">No</span>
+          </div>
+          <div className="bg-white/80" />
+          <div className="bg-[#FFD666] flex items-center justify-center text-center font-bold text-sm px-6 leading-tight border-l border-gray-200">
+            Temporary Competitive Advantage
+          </div>
+        </div>
+
+        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] border border-gray-200 h-18 bg-gray-50/30 overflow-hidden">
+          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
+            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
+            <span className="text-gray-500 font-bold text-lg">Yes</span>
+          </div>
+          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
+            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
+            <span className="text-gray-500 font-bold text-lg">Yes</span>
+          </div>
+          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
+            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
+            <span className="text-gray-500 font-bold text-lg">Yes</span>
+          </div>
+          <div className="flex items-center justify-center gap-4 bg-white/80 focus:bg-white transition-colors">
+            <div className="w-10 h-10 rounded-full border-2 border-red-400 flex items-center justify-center text-red-500 font-bold bg-white text-2xl">×</div>
+            <span className="text-gray-500 font-bold text-lg">No</span>
+          </div>
+          <div className="bg-[#ADCCD1] flex items-center justify-center text-center font-bold text-sm px-6 leading-tight border-l border-gray-200">
+            Unused Competitive Advantage
+          </div>
+        </div>
+
+        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] border border-gray-200 h-18 bg-gray-50/30 overflow-hidden">
+          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
+            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
+            <span className="text-gray-500 font-bold text-lg">Yes</span>
+          </div>
+          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
+            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
+            <span className="text-gray-500 font-bold text-lg">Yes</span>
+          </div>
+          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
+            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
+            <span className="text-gray-500 font-bold text-lg">Yes</span>
+          </div>
+          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
+            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
+            <span className="text-gray-500 font-bold text-lg">Yes</span>
+          </div>
+          <div className="bg-[#8EB39F] flex items-center justify-center text-center font-bold text-sm px-6 leading-tight border-l border-gray-200">
+            Sustainable Competitive Advantage
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

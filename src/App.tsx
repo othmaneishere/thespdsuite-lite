@@ -237,15 +237,15 @@ const PESTELWorksheet = ({ data, setData }: { data: PESTELData[]; setData: (d: P
   };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse border-b-2 border-l-2 border-r-2 border-black">
+    <div className="overflow-x-auto w-full">
+      <table className="w-full border-collapse border-b-2 border-l-2 border-r-2 border-black text-xs md:text-sm">
         <thead>
           <tr className="bg-brand-blue text-black">
-            <th className="w-32 border border-black p-4 bg-white"></th>
-            <th className="border border-black p-4 text-center font-bold text-lg min-w-[400px]">Description</th>
-            <th className="w-24 border border-black p-4 text-center font-bold text-sm">Impact</th>
-            <th className="w-24 border border-black p-4 text-center font-bold text-sm">Probability</th>
-            <th className="w-48 border border-black p-4 text-center font-bold text-sm leading-tight">Potential as<br/>Opportunity or<br/>Threat</th>
+            <th className="w-20 md:w-32 border border-black p-2 md:p-4 bg-white"></th>
+            <th className="border border-black p-2 md:p-4 text-center font-bold text-base w-full">Description</th>
+            <th className="w-16 md:w-24 border border-black p-2 md:p-4 text-center font-bold">Impact</th>
+            <th className="w-16 md:w-24 border border-black p-2 md:p-4 text-center font-bold">Prob.</th>
+            <th className="w-24 md:w-48 border border-black p-2 md:p-4 text-center font-bold leading-tight">Potential</th>
           </tr>
         </thead>
         <tbody>
@@ -261,41 +261,36 @@ const PESTELWorksheet = ({ data, setData }: { data: PESTELData[]; setData: (d: P
             
             return (
               <tr key={cat} className="group">
-                <td className="border border-black p-4 font-bold text-center bg-gray-50 align-middle">
+                <td className="border border-black p-2 md:p-4 font-bold text-center bg-gray-50 align-middle">
                   {cat}
                 </td>
                 <td className="border border-black p-0 relative">
                   <textarea
                     value={item.description}
                     onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                    className="w-full h-full min-h-[140px] p-4 bg-transparent outline-hidden resize-none translate-z-0 relative z-10 text-sm leading-[24px] whitespace-pre-wrap"
+                    className="w-full h-32 md:h-40 p-2 md:p-4 bg-transparent outline-hidden resize-none translate-z-0 relative z-10 text-xs md:text-sm leading-tight whitespace-pre-wrap"
                     placeholder={`Enter ${cat.toLowerCase()} factors...`}
                   />
-                  <div className="absolute inset-x-0 top-0 h-full pointer-events-none p-4 pt-[40px]">
-                    {[...Array(2)].map((_, i) => (
-                      <div key={i} className="border-b border-dashed border-gray-300 h-[24px]" />
-                    ))}
-                  </div>
                 </td>
                 <td className="border border-black p-0">
                   <textarea 
                     value={item.impact}
                     onChange={(e) => updateItem(item.id, 'impact', e.target.value)}
-                    className="w-full h-full min-h-[120px] p-2 text-center outline-hidden resize-none bg-transparent"
+                    className="w-full h-32 md:h-40 p-1 md:p-2 text-center outline-hidden resize-none bg-transparent"
                   />
                 </td>
                 <td className="border border-black p-0">
                   <textarea 
                     value={item.probability}
                     onChange={(e) => updateItem(item.id, 'probability', e.target.value)}
-                    className="w-full h-full min-h-[120px] p-2 text-center outline-hidden resize-none bg-transparent"
+                    className="w-full h-32 md:h-40 p-1 md:p-2 text-center outline-hidden resize-none bg-transparent"
                   />
                 </td>
                 <td className="border border-black p-0">
                   <textarea 
                     value={item.potential}
                     onChange={(e) => updateItem(item.id, 'potential', e.target.value)}
-                    className="w-full h-full min-h-[120px] p-2 text-center outline-hidden resize-none bg-transparent"
+                    className="w-full h-32 md:h-40 p-1 md:p-2 text-center outline-hidden resize-none bg-transparent"
                   />
                 </td>
               </tr>
@@ -329,13 +324,13 @@ const McKinseyWorksheet = ({ data, setData }: { data: McKinsey7SData; setData: (
   };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse border-b-2 border-l-2 border-r-2 border-black table-fixed">
+    <div className="overflow-x-auto w-full">
+      <table className="w-full border-collapse border-b-2 border-l-2 border-r-2 border-black table-auto">
         <thead>
           <tr className="bg-brand-peach">
-            <th className="w-40 border border-black p-4 bg-white"></th>
+            <th className="w-24 md:w-40 border border-black p-2 md:p-4 bg-white"></th>
             {elements.map(el => (
-              <th key={el.key} className="border border-black p-4 text-center font-bold text-[10px] uppercase tracking-tight">
+              <th key={el.key} className="border border-black p-2 md:p-4 text-center font-bold text-[8px] md:text-[10px] uppercase tracking-tight w-16 md:w-24">
                 {el.label}
               </th>
             ))}
@@ -344,7 +339,7 @@ const McKinseyWorksheet = ({ data, setData }: { data: McKinsey7SData; setData: (
         <tbody>
           {elements.map((rowEl, rowIndex) => (
             <tr key={rowEl.key}>
-              <td className="border border-black p-4 font-bold text-center bg-gray-50 text-[10px] uppercase tracking-tight align-middle min-h-[96px]">
+              <td className="border border-black p-2 md:p-4 font-bold text-center bg-gray-50 text-[8px] md:text-[10px] uppercase tracking-tight align-middle min-h-[64px] md:min-h-[96px]">
                 {rowEl.label}
               </td>
               {elements.map((colEl, colIndex) => {
@@ -355,14 +350,14 @@ const McKinseyWorksheet = ({ data, setData }: { data: McKinsey7SData; setData: (
                   <td 
                     key={colEl.key} 
                     className={cn(
-                      "border border-black p-0 relative min-h-[96px]",
+                      "border border-black p-0 relative min-h-[64px] md:min-h-[96px]",
                       isDiagonal && "bg-brand-peach"
                     )}
                   >
                     <textarea
                       value={cellValue}
                       onChange={(e) => updateGrid(rowEl.key, colEl.key, e.target.value)}
-                      className="w-full h-full min-h-[96px] p-2 bg-transparent outline-hidden resize-none text-[10px] leading-tight font-medium"
+                      className="w-full h-full min-h-[64px] md:min-h-[96px] p-1 md:p-2 bg-transparent outline-hidden resize-none text-[8px] md:text-[10px] leading-tight font-medium"
                       placeholder="..."
                     />
                   </td>

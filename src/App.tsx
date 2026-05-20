@@ -37,7 +37,7 @@ class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}
 }
 
 import { Download, FileText, Settings2, Trash2, Files, Network } from 'lucide-react';
-import { toPng } from 'html-to-image';
+import { toPng, toJpeg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { cn } from '@/src/lib/utils';
 import { MetaData, PESTELData, McKinsey7SData, VRIOAnalysisData, TOWSMatrixData, PortersFiveForcesData } from './types';
@@ -562,6 +562,9 @@ function AppContent() {
       const printRef = document.getElementById('full-report-print-container');
       if (!printRef) throw new Error('Print container not found');
 
+      const originalPrintDisplay = printRef.style.display;
+      printRef.style.display = 'block';
+
       const sections = printRef.querySelectorAll('.print-section');
       let isFirstPage = true;
 
@@ -569,8 +572,8 @@ function AppContent() {
         const section = sections[i] as HTMLElement;
         section.style.display = 'block';
         
-        const imgData = await toPng(section, {
-          quality: 1.0,
+        const imgData = await toJpeg(section, {
+          quality: 0.92,
           pixelRatio: 2,
           backgroundColor: '#ffffff',
         });
@@ -595,11 +598,12 @@ function AppContent() {
 
         const x = (pageWidth - finalWidth) / 2;
         const y = (pageHeight - finalHeight) / 2;
-        pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+        pdf.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight);
         section.style.display = 'none';
       }
 
       pdf.save(`Full_Strategy_Report_${meta.companyName || 'Export'}.pdf`);
+      printRef.style.display = originalPrintDisplay;
     } catch (error) {
       console.error('Export all failed:', error);
     } finally {
@@ -826,13 +830,6 @@ function AppContent() {
             <VRIOAnalysisTable data={vrioAnalysisData} setData={() => {}} notes={vrioNotes} setNotes={() => {}} />
           </div>
         </div>
-        <div className="print-section bg-white p-12 w-[297mm]">
-          <ConfrontationMatrixGuide />
-          <div className="mt-8">
-            <h2 className="text-4xl font-bold uppercase tracking-tight text-gray-900 border-b-[12px] border-[#FFD666] pb-2 mb-8">Confrontation Matrix</h2>
-            <TOWSWorksheet data={towsData} setData={() => {}} meta={meta} setMeta={() => {}} />
-          </div>
-        </div>
         {(['suppliers', 'buyers', 'newEntrants', 'substitutes', 'rivalry'] as const).map(force => (
           <div key={force} className="print-section bg-white p-12 w-[297mm]">
             <CorporateHeader meta={meta} setMeta={setMeta} />
@@ -840,6 +837,13 @@ function AppContent() {
             <PortersFiveForces data={portersData} setData={() => {}} activeForce={force} setActiveForce={() => {}} />
           </div>
         ))}
+        <div className="print-section bg-white p-12 w-[297mm]">
+          <ConfrontationMatrixGuide />
+          <div className="mt-8">
+            <h2 className="text-4xl font-bold uppercase tracking-tight text-gray-900 border-b-[12px] border-[#FFD666] pb-2 mb-8">Confrontation Matrix</h2>
+            <TOWSWorksheet data={towsData} setData={() => {}} meta={meta} setMeta={() => {}} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1678,287 +1682,3 @@ const PortersFiveForces = ({
   );
 };
 
-const VRIOAnalysisTable = ({ 
-  data, 
-  setData, 
-  notes, 
-  setNotes 
-}: { 
-  data: VRIOAnalysisData[]; 
-  setData: (d: VRIOAnalysisData[]) => void;
-  notes: string;
-  setNotes: (n: string) => void;
-}) => {
-  const updateItem = (id: string, field: keyof VRIOAnalysisData, value: string) => {
-    setData(data.map(item => item.id === id ? { ...item, [field]: value } : item));
-  };
-
-  return (
-    <div className="space-y-4">
-      <h3 className="text-2xl font-bold uppercase tracking-tight text-gray-900 border-b-4 border-gray-100 inline-block">
-        VRIO Analysis
-      </h3>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border-2 border-black table-fixed">
-          <thead>
-            <tr className="bg-white">
-              <th className="border border-black p-4 text-center font-bold text-sm bg-gray-50/50">Resources</th>
-              <th className="border border-black p-4 text-center font-bold text-sm bg-gray-50/50">Type</th>
-              <th className="border border-black p-4 text-center font-bold text-sm bg-gray-50/50 w-1/4">Detail</th>
-              <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-20">
-                <div className="text-base">V</div>
-                <div className="text-[8px] font-normal leading-tight lowercase">is it valuable?</div>
-              </th>
-              <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-20">
-                <div className="text-base">R</div>
-                <div className="text-[8px] font-normal leading-tight lowercase">is it rare?</div>
-              </th>
-              <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-20">
-                <div className="text-base">I</div>
-                <div className="text-[8px] font-normal leading-tight lowercase">is it hard to imitate?</div>
-              </th>
-              <th className="border border-black p-2 text-center font-bold text-sm bg-gray-50/50 w-28">
-                <div className="text-base">O</div>
-                <div className="text-[8px] font-normal leading-tight">How organized is the company around this?</div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((item) => (
-              <tr key={item.id} className="h-12">
-                <td className="border border-black p-0">
-                  <input
-                    type="text"
-                    value={item.resource}
-                    onChange={(e) => updateItem(item.id, 'resource', e.target.value)}
-                    className="w-full h-full px-4 text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
-                  />
-                </td>
-                <td className="border border-black p-0">
-                  <input
-                    type="text"
-                    value={item.type}
-                    onChange={(e) => updateItem(item.id, 'type', e.target.value)}
-                    className="w-full h-full px-4 text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
-                  />
-                </td>
-                <td className="border border-black p-0">
-                  <input
-                    type="text"
-                    value={item.detail}
-                    onChange={(e) => updateItem(item.id, 'detail', e.target.value)}
-                    className="w-full h-full px-4 text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
-                  />
-                </td>
-                <td className="border border-black p-0">
-                  <input
-                    type="text"
-                    value={item.v}
-                    onChange={(e) => updateItem(item.id, 'v', e.target.value)}
-                    className="w-full h-full text-center text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
-                  />
-                </td>
-                <td className="border border-black p-0">
-                  <input
-                    type="text"
-                    value={item.r}
-                    onChange={(e) => updateItem(item.id, 'r', e.target.value)}
-                    className="w-full h-full text-center text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
-                  />
-                </td>
-                <td className="border border-black p-0">
-                  <input
-                    type="text"
-                    value={item.i}
-                    onChange={(e) => updateItem(item.id, 'i', e.target.value)}
-                    className="w-full h-full text-center text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
-                  />
-                </td>
-                <td className="border border-black p-0">
-                  <input
-                    type="text"
-                    value={item.o}
-                    onChange={(e) => updateItem(item.id, 'o', e.target.value)}
-                    className="w-full h-full text-center text-sm bg-transparent outline-hidden focus:bg-blue-50/30 transition-colors"
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="border border-black rounded-sm overflow-hidden">
-        <div className="bg-gray-50 border-b border-black px-4 py-2 text-sm font-bold">Notes</div>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          className="w-full min-h-[120px] p-4 text-sm bg-white outline-hidden resize-none translate-z-0"
-          placeholder="Enter additional analysis notes here..."
-        />
-      </div>
-    </div>
-  );
-};
-
-const VRIOFramework = () => {
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] gap-0">
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center">
-          <div className="flex-1 flex items-center justify-center">
-            <img 
-              src="https://img.icons8.com/ios/100/money-bag.png" 
-              alt="Valuable" 
-              className="w-16 h-16 opacity-50 grayscale"
-              crossOrigin="anonymous"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT VALUABLE?</span>
-        </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
-          <div className="flex-1 flex items-center justify-center">
-            <img 
-              src="https://img.icons8.com/ios/100/diamond--v1.png" 
-              alt="Rare" 
-              className="w-16 h-16 opacity-50 grayscale"
-              crossOrigin="anonymous"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT RARE?</span>
-        </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
-          <div className="flex-1 flex items-center justify-center">
-            <img 
-              src="https://img.icons8.com/ios/100/copy.png" 
-              alt="Imitation" 
-              className="w-16 h-16 opacity-50 grayscale"
-              crossOrigin="anonymous"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight">IT IT DIFFICULT TO IMITATE?</span>
-        </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
-          <div className="flex-1 flex items-center justify-center">
-            <img 
-              src="https://img.icons8.com/ios/100/settings.png" 
-              alt="Organized" 
-              className="w-16 h-16 opacity-50 grayscale"
-              crossOrigin="anonymous"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-          <span className="text-[11px] font-bold uppercase tracking-tight text-center leading-[1.1] text-gray-800 px-2">HOW ORGANIZED IS THE COMPANY AROUND THIS</span>
-        </div>
-        <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-44 bg-white text-center border-l-0">
-          <div className="flex-1 flex items-center justify-center">
-            <img 
-              src="https://img.icons8.com/ios/100/goal--v1.png" 
-              alt="Result" 
-              className="w-16 h-16 opacity-50 grayscale"
-              crossOrigin="anonymous"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-          <span className="text-[11px] font-bold uppercase tracking-tight text-gray-800 leading-tight px-4">WHAT IS THE OVERALL RESULT?</span>
-        </div>
-      </div>
-
-      <div className="space-y-4 pt-1">
-        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] border border-gray-200 h-18 bg-gray-50/30 overflow-hidden">
-          <div className="flex items-center justify-center gap-4 bg-white/80">
-            <div className="w-10 h-10 rounded-full border-2 border-red-400 flex items-center justify-center text-red-500 font-bold bg-white text-2xl">×</div>
-            <span className="text-gray-500 font-bold text-lg">No</span>
-          </div>
-          <div className="bg-white/80" />
-          <div className="bg-white/80" />
-          <div className="bg-white/80" />
-          <div className="bg-[#FF9B9B] flex items-center justify-center text-center font-bold text-sm px-6 leading-tight border-l border-gray-200">
-            Competitive Disadvantage
-          </div>
-        </div>
-
-        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] border border-gray-200 h-18 bg-gray-50/30 overflow-hidden">
-          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
-            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
-            <span className="text-gray-500 font-bold text-lg">Yes</span>
-          </div>
-          <div className="flex items-center justify-center gap-4 bg-white/80">
-            <div className="w-10 h-10 rounded-full border-2 border-red-400 flex items-center justify-center text-red-500 font-bold bg-white text-2xl">×</div>
-            <span className="text-gray-500 font-bold text-lg">No</span>
-          </div>
-          <div className="bg-white/80" />
-          <div className="bg-white/80" />
-          <div className="bg-[#EB9F7D] flex items-center justify-center text-center font-bold text-sm px-6 leading-tight border-l border-gray-200">
-            Competitive Parity
-          </div>
-        </div>
-
-        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] border border-gray-200 h-18 bg-gray-50/30 overflow-hidden">
-          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
-            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
-            <span className="text-gray-500 font-bold text-lg">Yes</span>
-          </div>
-          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
-            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
-            <span className="text-gray-500 font-bold text-lg">Yes</span>
-          </div>
-          <div className="flex items-center justify-center gap-4 bg-white/80">
-            <div className="w-10 h-10 rounded-full border-2 border-red-400 flex items-center justify-center text-red-500 font-bold bg-white text-2xl">×</div>
-            <span className="text-gray-500 font-bold text-lg">No</span>
-          </div>
-          <div className="bg-white/80" />
-          <div className="bg-[#FFD666] flex items-center justify-center text-center font-bold text-sm px-6 leading-tight border-l border-gray-200">
-            Temporary Competitive Advantage
-          </div>
-        </div>
-
-        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] border border-gray-200 h-18 bg-gray-50/30 overflow-hidden">
-          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
-            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
-            <span className="text-gray-500 font-bold text-lg">Yes</span>
-          </div>
-          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
-            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
-            <span className="text-gray-500 font-bold text-lg">Yes</span>
-          </div>
-          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
-            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
-            <span className="text-gray-500 font-bold text-lg">Yes</span>
-          </div>
-          <div className="flex items-center justify-center gap-4 bg-white/80 focus:bg-white transition-colors">
-            <div className="w-10 h-10 rounded-full border-2 border-red-400 flex items-center justify-center text-red-500 font-bold bg-white text-2xl">×</div>
-            <span className="text-gray-500 font-bold text-lg">No</span>
-          </div>
-          <div className="bg-[#ADCCD1] flex items-center justify-center text-center font-bold text-sm px-6 leading-tight border-l border-gray-200">
-            Unused Competitive Advantage
-          </div>
-        </div>
-
-        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] border border-gray-200 h-18 bg-gray-50/30 overflow-hidden">
-          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
-            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
-            <span className="text-gray-500 font-bold text-lg">Yes</span>
-          </div>
-          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
-            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
-            <span className="text-gray-500 font-bold text-lg">Yes</span>
-          </div>
-          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
-            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
-            <span className="text-gray-500 font-bold text-lg">Yes</span>
-          </div>
-          <div className="flex items-center justify-center gap-4 bg-white/80 border-r border-gray-100/50">
-            <div className="w-10 h-10 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 font-bold bg-white text-2xl">✓</div>
-            <span className="text-gray-500 font-bold text-lg">Yes</span>
-          </div>
-          <div className="bg-[#8EB39F] flex items-center justify-center text-center font-bold text-sm px-6 leading-tight border-l border-gray-200">
-            Sustainable Competitive Advantage
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};

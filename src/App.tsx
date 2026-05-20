@@ -344,7 +344,7 @@ const McKinseyWorksheet = ({ data, setData }: { data: McKinsey7SData; setData: (
         <tbody>
           {elements.map((rowEl, rowIndex) => (
             <tr key={rowEl.key}>
-              <td className="border border-black p-4 font-bold text-center bg-gray-50 text-[10px] uppercase tracking-tight align-middle h-20">
+              <td className="border border-black p-4 font-bold text-center bg-gray-50 text-[10px] uppercase tracking-tight align-middle min-h-[96px]">
                 {rowEl.label}
               </td>
               {elements.map((colEl, colIndex) => {
@@ -355,14 +355,14 @@ const McKinseyWorksheet = ({ data, setData }: { data: McKinsey7SData; setData: (
                   <td 
                     key={colEl.key} 
                     className={cn(
-                      "border border-black p-0 relative h-20",
+                      "border border-black p-0 relative min-h-[96px]",
                       isDiagonal && "bg-brand-peach"
                     )}
                   >
                     <textarea
                       value={cellValue}
                       onChange={(e) => updateGrid(rowEl.key, colEl.key, e.target.value)}
-                      className="w-full h-full p-2 bg-transparent outline-hidden resize-none text-[10px] leading-tight font-medium"
+                      className="w-full h-full min-h-[96px] p-2 bg-transparent outline-hidden resize-none text-[10px] leading-tight font-medium"
                       placeholder="..."
                     />
                   </td>
@@ -601,7 +601,6 @@ function AppContent() {
   }, [meta, pestelData, mckinseyData, vrioAnalysisData, vrioNotes, towsData, portersData, isLoading]);
 
   const exportPDF = async () => {
-    if (!containerRef.current) return;
     setIsExporting(true);
 
     const pdf = new jsPDF({
@@ -611,26 +610,23 @@ function AppContent() {
     });
 
     try {
+      const printRef = document.getElementById('full-report-print-container');
+      if (!printRef) throw new Error('Print container not found');
+
+      const originalPrintDisplay = printRef.style.display;
+      printRef.style.display = 'block';
+
       if (activeTab === 'PORTER') {
         const forces = ['suppliers', 'buyers', 'newEntrants', 'substitutes', 'rivalry'] as const;
         let isFirstPage = true;
 
         for (const force of forces) {
-          // Temporarily show each force in the hidden container to capture it
-          const printRef = document.getElementById('full-report-print-container');
-          if (!printRef) throw new Error('Print container not found');
-          
           const section = Array.from(printRef.querySelectorAll('.print-section')).find(s => 
-            s.querySelector('h2')?.textContent?.includes(`Porter's 5 Forces: ${force.toUpperCase()}`)
+            s.querySelector('h2')?.textContent?.toUpperCase().includes(`PORTER'S 5 FORCES: ${force.toUpperCase()}`)
           ) as HTMLElement;
 
           if (section) {
-            const originalDisplay = section.style.display;
-            const originalParentDisplay = printRef.style.display;
-            
-            printRef.style.display = 'block';
             section.style.display = 'block';
-            
             const imgData = await toJpeg(section, {
               quality: 0.95,
               pixelRatio: 2,
@@ -658,47 +654,53 @@ function AppContent() {
             const x = (pageWidth - finalWidth) / 2;
             const y = (pageHeight - finalHeight) / 2;
             pdf.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight);
-
-            section.style.display = originalDisplay;
-            printRef.style.display = originalParentDisplay;
+            section.style.display = 'none';
           }
         }
         pdf.save(`Porters_Five_Forces_Full_${meta.companyName || 'Export'}.pdf`);
       } else {
-        const element = containerRef.current;
-        const imgData = await toPng(element, {
-          quality: 1.0,
-          pixelRatio: 2,
-          backgroundColor: '#ffffff',
-          style: {
-            boxShadow: 'none',
-            margin: '0',
-            transform: 'none'
+        // Find the section by matching the title or a data attribute
+        const section = Array.from(printRef.querySelectorAll('.print-section')).find(s => {
+          const h2Text = s.querySelector('h2')?.textContent?.toUpperCase() || '';
+          if (activeTab === 'PESTEL') return h2Text.includes('PESTEL ANALYSIS');
+          if (activeTab === 'McKinsey') return h2Text.includes('MCKINSEY 7-S FRAMEWORK');
+          if (activeTab === 'VRIO') return h2Text.includes('VRIO FRAMEWORK');
+          if (activeTab === 'TOWS') return h2Text.includes('CONFRONTATION MATRIX');
+          return false;
+        }) as HTMLElement;
+
+        if (section) {
+          section.style.display = 'block';
+          const imgData = await toPng(section, {
+            quality: 1.0,
+            pixelRatio: 2,
+            backgroundColor: '#ffffff',
+          });
+
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          const pageHeight = pdf.internal.pageSize.getHeight();
+          const imgProps = pdf.getImageProperties(imgData);
+          const imgRatio = imgProps.width / imgProps.height;
+          const pageRatio = pageWidth / pageHeight;
+
+          let finalWidth, finalHeight;
+          if (imgRatio > pageRatio) {
+              finalWidth = pageWidth;
+              finalHeight = pageWidth / imgRatio;
+          } else {
+              finalHeight = pageHeight;
+              finalWidth = pageHeight * imgRatio;
           }
-        });
 
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        
-        const imgProps = pdf.getImageProperties(imgData);
-        const imgRatio = imgProps.width / imgProps.height;
-        const pageRatio = pageWidth / pageHeight;
-
-        let finalWidth, finalHeight;
-        if (imgRatio > pageRatio) {
-            finalWidth = pageWidth;
-            finalHeight = pageWidth / imgRatio;
-        } else {
-            finalHeight = pageHeight;
-            finalWidth = pageHeight * imgRatio;
+          const x = (pageWidth - finalWidth) / 2;
+          const y = (pageHeight - finalHeight) / 2;
+          
+          pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+          pdf.save(`${activeTab}_Worksheet_${meta.companyName || 'Export'}.pdf`);
+          section.style.display = 'none';
         }
-
-        const x = (pageWidth - finalWidth) / 2;
-        const y = (pageHeight - finalHeight) / 2;
-        
-        pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
-        pdf.save(`${activeTab}_Worksheet_${meta.companyName || 'Export'}.pdf`);
       }
+      printRef.style.display = originalPrintDisplay;
     } catch (error) {
       console.error('Export failed:', error);
     } finally {

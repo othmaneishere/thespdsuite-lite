@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, Component, ErrorInfo, ReactNode } from 'react';
+import React from 'react';
 import { FileText, Settings2, Network, Files } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -1127,7 +1128,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
     return 'text-gray-700';
   };
 
-  const MatrixCell = ({
+  const MatrixCell = React.memo(({
     rowType,
     colType,
     rIdx,
@@ -1182,7 +1183,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
         </div>
       </div>
     );
-  };
+  });
 
   return (
     <div className="bg-white p-12 rounded-xl border border-gray-100 overflow-x-auto min-w-[1100px]">

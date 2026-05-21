@@ -718,21 +718,25 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
 
     // 1. Fetch initial data from DB
     const fetchData = async () => {
-      const { data } = await supabase
+      console.log('Fetching initial data for group:', selectedGroup);
+      const { data, error } = await supabase
         .from('worksheets')
         .select('data')
         .eq('id', selectedGroup)
         .single();
       
-      if (data) {
+      if (error) {
+        console.error('Error fetching initial data:', error);
+      } else if (data) {
+        console.log('Data fetched successfully:', data);
         const parsed = data.data;
         if (parsed.pestel) setPestelData(parsed.pestel);
-        // ... set other framework states
       }
     };
     fetchData();
 
     // 2. Subscribe to real-time changes
+    console.log('Subscribing to real-time changes for group:', selectedGroup);
     const channel = supabase
       .channel('db-changes')
       .on('postgres_changes', { 
@@ -741,20 +745,29 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
         table: 'worksheets',
         filter: `id=eq.${selectedGroup}`
       }, (payload) => {
+        console.log('Real-time change received:', payload);
         const newData = payload.new.data;
         setPestelData(newData.pestel);
-        // ... update other states
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
 
     return () => { channel.unsubscribe(); };
   }, [selectedGroup]);
 
   // 3. Save changes to DB (debounced)
   const saveToDB = async (newData: any) => {
-    await supabase
+    console.log('Saving to DB for group:', selectedGroup, 'Data:', newData);
+    const { error } = await supabase
       .from('worksheets')
-      .upsert({ id: selectedGroup, data: newData, updated_at: new Date().toISOString() });
+      .upsert({ id: selectedGroup, data: { pestel: newData }, updated_at: new Date().toISOString() });
+      
+    if (error) {
+      console.error('Error saving to DB:', error);
+    } else {
+      console.log('Data saved successfully');
+    }
   };
 
   const exportPDF = async () => {

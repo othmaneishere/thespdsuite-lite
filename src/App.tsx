@@ -722,15 +722,16 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
       const { data, error } = await supabase
         .from('worksheets')
         .select('data')
-        .eq('id', selectedGroup)
-        .single();
+        .eq('id', selectedGroup); // Removed .single() to avoid error if no record
       
       if (error) {
         console.error('Error fetching initial data:', error);
-      } else if (data) {
-        console.log('Data fetched successfully:', data);
-        const parsed = data.data;
+      } else if (data && data.length > 0) {
+        console.log('Data fetched successfully:', data[0]);
+        const parsed = data[0].data;
         if (parsed.pestel) setPestelData(parsed.pestel);
+      } else {
+        console.log('No existing data found for group:', selectedGroup, 'Starting with empty state.');
       }
     };
     fetchData();

@@ -557,6 +557,7 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
+        console.log('Presence sync event received. Current state:', state);
         
         // Update group participants
         const groupUsers: string[] = [];
@@ -572,6 +573,8 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
             }
           });
         });
+
+        console.log(`Updating participants for group ${selectedGroup}. Found ${groupUsers.length} in group, ${globalCount} total.`);
 
         // Unique names for participants
         setParticipants([...new Set(groupUsers)]);

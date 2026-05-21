@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, Component, ErrorInfo, ReactNode } from 'react';
 import React from 'react';
-import { FileText, Settings2, Network, Files } from 'lucide-react';
+import { FileText, Settings2, Network, Files, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import ProfessorDashboard from './ProfessorDashboard';
 
 // Error Boundary Component for stability
 class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}> {
@@ -372,7 +373,7 @@ const McKinseyWorksheet = ({ data, setData }: { data: McKinsey7SData; setData: (
   );
 };
 
-const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string) => void }) => {
+const AccessPage = ({ onSelectGroup, onAdminToggle }: { onSelectGroup: (group: string) => void; onAdminToggle: () => void }) => {
   const [selectedValue, setSelectedValue] = useState('');
 
   const handleContinue = () => {
@@ -390,8 +391,10 @@ const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string) => void 
             <img 
               src="https://i.ibb.co/FqgQzNPw/LOGO-BLEU.png" 
               alt="Logo" 
-              className="h-24 w-auto object-contain"
+              className="h-24 w-auto object-contain cursor-help"
               crossOrigin="anonymous"
+              onDoubleClick={onAdminToggle}
+              title="Welcome to Strategic Suite Pro"
             />
           </div>
 
@@ -447,6 +450,7 @@ export default function App() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(() => {
     return localStorage.getItem('sdp_selected_group');
   });
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
   useEffect(() => {
     if (selectedGroup) {
@@ -456,6 +460,24 @@ export default function App() {
     }
   }, [selectedGroup]);
 
+  if (isAdminMode) {
+    return (
+      <ErrorBoundary>
+        <div className="relative">
+          <ProfessorDashboard />
+          <button 
+            onClick={() => setIsAdminMode(false)}
+            className="fixed bottom-8 right-8 p-4 bg-slate-900 text-white rounded-full shadow-2xl hover:bg-brand-blue transition-all z-50 group"
+            title="Exit Admin Mode"
+          >
+            <Shield size={24} />
+            <span className="absolute right-full mr-4 bg-slate-900 text-white px-3 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Exit Admin Mode</span>
+          </button>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
       {selectedGroup ? (
@@ -463,15 +485,16 @@ export default function App() {
           key={selectedGroup} 
           selectedGroup={selectedGroup} 
           onExit={() => setSelectedGroup(null)} 
+          onAdminToggle={() => setIsAdminMode(true)}
         />
       ) : (
-        <AccessPage onSelectGroup={setSelectedGroup} />
+        <AccessPage onSelectGroup={setSelectedGroup} onAdminToggle={() => setIsAdminMode(true)} />
       )}
     </ErrorBoundary>
   );
 }
 
-function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: () => void }) {
+function AppContent({ selectedGroup, onExit, onAdminToggle }: { selectedGroup: string; onExit: () => void; onAdminToggle: () => void }) {
   const [activeTab, setActiveTab] = useState<'PESTEL' | 'McKinsey' | 'VRIO' | 'TOWS' | 'PORTER'>(() => {
     const saved = localStorage.getItem(`sdp_tab_${selectedGroup}`);
     return (saved as any) || 'PESTEL';
@@ -845,8 +868,10 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
             <img 
               src="https://i.ibb.co/FqgQzNPw/LOGO-BLEU.png" 
               alt="SDP Suite Logo" 
-              className="h-16 w-auto object-contain"
+              className="h-16 w-auto object-contain cursor-help"
               crossOrigin="anonymous"
+              onDoubleClick={onAdminToggle}
+              title="Double-click for System Management"
             />
           </div>
 

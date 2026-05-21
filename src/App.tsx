@@ -549,13 +549,10 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
   useEffect(() => {
     if (!selectedGroup || !fullName) return;
 
-    const channel = supabase.channel('sdp-presence', {
-      config: {
-        presence: {
-          key: fullName,
-        },
-      },
-    });
+    // Use a unique ID for this session/tab
+    const sessionId = crypto.randomUUID();
+
+    const channel = supabase.channel('sdp-presence');
 
     channel
       .on('presence', { event: 'sync' }, () => {
@@ -565,23 +562,25 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
         const groupUsers: string[] = [];
         let globalCount = 0;
 
+        // presenceState() returns { [key]: [presenceObject, ...], ... }
         Object.keys(state).forEach((key) => {
           const presences = state[key] as any[];
           presences.forEach((p) => {
             globalCount++;
-            if (p.group === selectedGroup) {
-              groupUsers.push(key);
+            if (p.group === selectedGroup && p.fullName) {
+              groupUsers.push(p.fullName);
             }
           });
         });
 
-        // Unique names for participants (excluding self if we want, but usually we show everyone)
+        // Unique names for participants
         setParticipants([...new Set(groupUsers)]);
         setOnlineTotal(globalCount);
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await channel.track({
+            fullName: fullName,
             group: selectedGroup,
             online_at: new Date().toISOString(),
           });

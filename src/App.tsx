@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, Component, ErrorInfo, ReactNode } from 'react';
 import React from 'react';
-import { FileText, Settings2, Network, Files, ChevronDown, LogOut, Trash2, BookOpen, Database } from 'lucide-react';
+import { FileText, Settings2, Network, Files, ChevronDown, LogOut, Trash2, BookOpen, Database, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { supabase } from './lib/supabase';
 
 // Error Boundary Component for stability
 class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}> {
@@ -44,7 +45,19 @@ import { cn } from '@/src/lib/utils';
 import { MetaData, PESTELData, McKinsey7SData, VRIOAnalysisData, TOWSMatrixData, PortersFiveForcesData } from './types';
 
 // Components
-const CorporateHeader = ({ meta, setMeta, selectedGroup, hideMeta = false }: { meta: MetaData; setMeta: (m: MetaData) => void; selectedGroup?: string | null; hideMeta?: boolean }) => {
+const CorporateHeader = ({ 
+  meta, 
+  setMeta, 
+  selectedGroup, 
+  hideMeta = false, 
+  participants = [] 
+}: { 
+  meta: MetaData; 
+  setMeta: (m: MetaData) => void; 
+  selectedGroup?: string | null; 
+  hideMeta?: boolean;
+  participants?: string[];
+}) => {
   return (
     <div className={cn("flex flex-col md:flex-row justify-between border-b-2 border-gray-100 pb-8 mb-8 gap-8", hideMeta && "border-none mb-4")}>
       <div className="flex items-start gap-4">
@@ -89,6 +102,22 @@ const CorporateHeader = ({ meta, setMeta, selectedGroup, hideMeta = false }: { m
               className="font-semibold text-gray-700 outline-hidden bg-transparent border-b border-dashed border-gray-300 w-full"
               placeholder="Enter company name..."
             />
+          </div>
+
+          {/* Participants Section */}
+          <div className="flex flex-col border-b border-gray-200 col-span-2 pt-2">
+            <span className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">Participants</span>
+            <div className="flex flex-wrap gap-2 mt-1 min-h-[1.5rem]">
+              {participants.length > 0 ? (
+                participants.map((p, i) => (
+                  <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                    {p}
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-400 italic text-xs font-medium">No other participants online...</span>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -376,12 +405,13 @@ const McKinseyWorksheet = ({ data, setData }: { data: McKinsey7SData; setData: (
   );
 };
 
-const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string) => void }) => {
+const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string, fullName: string) => void }) => {
   const [selectedValue, setSelectedValue] = useState('');
+  const [fullName, setFullName] = useState('');
 
   const handleContinue = () => {
-    if (selectedValue) {
-      onSelectGroup(selectedValue);
+    if (selectedValue && fullName.trim()) {
+      onSelectGroup(selectedValue, fullName.trim());
     }
   };
 
@@ -411,6 +441,20 @@ const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string) => void 
           {/* Form */}
           <div className="space-y-6">
             <div>
+              <label htmlFor="full-name" className="block text-sm font-bold uppercase tracking-tight text-gray-900 mb-3">
+                Full Name
+              </label>
+              <input
+                id="full-name"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Enter your full name"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl font-semibold text-gray-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all bg-white hover:border-gray-300"
+              />
+            </div>
+
+            <div>
               <label htmlFor="group-select" className="block text-sm font-bold uppercase tracking-tight text-gray-900 mb-3">
                 Select Group
               </label>
@@ -431,7 +475,7 @@ const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string) => void 
 
             <button
               onClick={handleContinue}
-              disabled={!selectedValue}
+              disabled={!selectedValue || !fullName.trim()}
               className="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 cursor-pointer uppercase tracking-tight"
             >
               Continue to Dashboard
@@ -453,6 +497,10 @@ export default function App() {
     return localStorage.getItem('sdp_selected_group');
   });
 
+  const [fullName, setFullName] = useState<string>(() => {
+    return localStorage.getItem('sdp_full_name') || '';
+  });
+
   useEffect(() => {
     if (selectedGroup) {
       localStorage.setItem('sdp_selected_group', selectedGroup);
@@ -461,22 +509,90 @@ export default function App() {
     }
   }, [selectedGroup]);
 
+  useEffect(() => {
+    if (fullName) {
+      localStorage.setItem('sdp_full_name', fullName);
+    } else {
+      localStorage.removeItem('sdp_full_name');
+    }
+  }, [fullName]);
+
+  const handleSelectGroup = (group: string, name: string) => {
+    setFullName(name);
+    setSelectedGroup(group);
+  };
+
   return (
     <ErrorBoundary>
       {selectedGroup ? (
         <AppContent 
           key={selectedGroup} 
           selectedGroup={selectedGroup} 
-          onExit={() => setSelectedGroup(null)} 
+          fullName={fullName}
+          onExit={() => {
+            setSelectedGroup(null);
+            setFullName('');
+          }} 
         />
       ) : (
-        <AccessPage onSelectGroup={setSelectedGroup} />
+        <AccessPage onSelectGroup={handleSelectGroup} />
       )}
     </ErrorBoundary>
   );
 }
 
-function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: () => void }) {
+function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string; fullName: string; onExit: () => void }) {
+  const [participants, setParticipants] = useState<string[]>([]);
+  const [onlineTotal, setOnlineTotal] = useState<number>(0);
+
+  // Real-time Presence
+  useEffect(() => {
+    if (!selectedGroup || !fullName) return;
+
+    const channel = supabase.channel('sdp-presence', {
+      config: {
+        presence: {
+          key: fullName,
+        },
+      },
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        
+        // Update group participants
+        const groupUsers: string[] = [];
+        let globalCount = 0;
+
+        Object.keys(state).forEach((key) => {
+          const presences = state[key] as any[];
+          presences.forEach((p) => {
+            globalCount++;
+            if (p.group === selectedGroup) {
+              groupUsers.push(key);
+            }
+          });
+        });
+
+        // Unique names for participants (excluding self if we want, but usually we show everyone)
+        setParticipants([...new Set(groupUsers)]);
+        setOnlineTotal(globalCount);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            group: selectedGroup,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [selectedGroup, fullName]);
+
   const getInitialData = () => {
     const saved = localStorage.getItem(`sdp_group_${selectedGroup}`);
     if (saved) {
@@ -844,6 +960,13 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
               crossOrigin="anonymous"
               title="Welcome to Strategic Suite Access"
             />
+            {/* Online Indicator */}
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-full border border-green-100">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[10px] font-black text-green-700 uppercase tracking-wider">
+                {onlineTotal} Online Users
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -953,7 +1076,13 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
           <div className="max-w-6xl mx-auto">
             {/* Header with Title and Metadata */}
             <div ref={containerRef} className="worksheet-container relative overflow-hidden bg-white">
-              <CorporateHeader meta={meta} setMeta={setMeta} selectedGroup={selectedGroup} hideMeta={false} isSaving={isSaving} />
+              <CorporateHeader 
+                meta={meta} 
+                setMeta={setMeta} 
+                selectedGroup={selectedGroup} 
+                hideMeta={false} 
+                participants={participants}
+              />
 
               {activeTab === 'TOWS' && <ConfrontationMatrixGuide />}
 

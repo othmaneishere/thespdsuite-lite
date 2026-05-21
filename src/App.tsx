@@ -392,13 +392,13 @@ const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string) => void 
               alt="Logo" 
               className="h-24 w-auto object-contain"
               crossOrigin="anonymous"
-              title="Welcome to Strategic Suite Pro"
+              title="Welcome to Strategic Suite Access"
             />
           </div>
 
           {/* Title */}
           <h1 className="text-3xl font-black text-gray-900 text-center mb-2 tracking-tight">
-            Strategic Suite Pro
+            Strategic Suite Access
           </h1>
           <p className="text-center text-gray-600 text-sm mb-8">
             Select your group to access the dashboard
@@ -852,7 +852,7 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
               alt="SDP Suite Logo" 
               className="h-16 w-auto object-contain"
               crossOrigin="anonymous"
-              title="Welcome to Strategic Suite Pro"
+              title="Welcome to Strategic Suite Access"
             />
           </div>
 

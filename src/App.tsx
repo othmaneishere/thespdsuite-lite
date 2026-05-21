@@ -244,9 +244,13 @@ const PESTELWorksheet = ({ data, setData }: { data: PESTELData[]; setData: (d: P
           <tr className="bg-brand-blue text-black">
             <th className="w-20 md:w-32 border border-black p-2 md:p-4 bg-white"></th>
             <th className="border border-black p-2 md:p-4 text-center font-bold text-base w-full">Description</th>
-            <th className="w-16 md:w-24 border border-black p-2 md:p-4 text-center font-bold">Impact</th>
-            <th className="w-16 md:w-24 border border-black p-2 md:p-4 text-center font-bold">Prob.</th>
-            <th className="w-24 md:w-48 border border-black p-2 md:p-4 text-center font-bold leading-tight">Potential</th>
+            <th className="w-20 md:w-32 border border-black p-2 md:p-4 text-center font-bold">Impact</th>
+            <th className="w-20 md:w-32 border border-black p-2 md:p-4 text-center font-bold">Probability</th>
+            <th className="w-32 md:w-64 border border-black p-2 md:p-4 text-center font-bold leading-tight">
+              Potential as<br />
+              Opportunity or<br />
+              Threat
+            </th>
           </tr>
         </thead>
         <tbody>

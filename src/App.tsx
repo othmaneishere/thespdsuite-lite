@@ -1050,8 +1050,6 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
         </div>
       </div>
     </div>
-  ) : (
-    <AccessPage onSelectGroup={setSelectedGroup} />
   );
 }
 

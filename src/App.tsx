@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, Component, ErrorInfo, ReactNode } from 'react';
 import React from 'react';
-import { FileText, Settings2, Network, Files } from 'lucide-react';
+import { FileText, Settings2, Network, Files, ChevronDown, LogOut, Trash2, BookOpen, Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Error Boundary Component for stability
@@ -865,7 +865,7 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
               className="flex items-center gap-2 px-4 py-2 text-gray-500 hover:text-blue-600 transition-all cursor-pointer font-extrabold text-[10px] uppercase tracking-[0.2em]"
               title="Exit Session"
             >
-              <span className="material-icons text-[18px]">logout</span>
+              <LogOut size={18} />
               <span className="hidden xl:inline">Exit</span>
             </button>
             
@@ -876,7 +876,7 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
               className="p-2 text-gray-400 hover:text-red-500 transition-all cursor-pointer"
               title="Clear current worksheet"
             >
-              <span className="material-icons text-[20px]">delete_sweep</span>
+              <Trash2 size={20} />
             </button>
 
             {/* Export Current Page Button */}
@@ -889,7 +889,7 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
               {isExporting && !isExportingAll ? (
                 <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <span className="material-icons text-[18px]">description</span>
+                <FileText size={18} />
               )}
               Page PDF
             </button>
@@ -908,7 +908,7 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
                 </span>
               ) : (
                 <>
-                  <span className="material-icons text-[18px]">auto_stories</span>
+                  <BookOpen size={18} />
                   Full Report
                 </>
               )}
@@ -1101,7 +1101,7 @@ const MatrixCell = React.memo(({
             <option value="2">Very Positive (+2)</option>
           </select>
           <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 flex items-center">
-            <span className={cn("material-icons text-[14px]", getTextColor(score))}>expand_more</span>
+            <ChevronDown size={14} className={cn(getTextColor(score))} />
           </div>
         </div>
       </div>
@@ -1534,31 +1534,31 @@ const VRIOFramework = () => {
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.25fr] gap-0">
         <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-56 bg-white text-center">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[100px] text-gray-300">payments</span>
+            <Database size={100} className="text-gray-300" />
           </div>
           <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT VALUABLE?</span>
         </div>
         <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-56 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[100px] text-gray-300">diamond</span>
+            <Files size={100} className="text-gray-300" />
           </div>
           <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT RARE?</span>
         </div>
         <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-56 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[100px] text-gray-300">content_copy</span>
+            <Network size={100} className="text-gray-300" />
           </div>
           <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight">IS IT DIFFICULT TO IMITATE?</span>
         </div>
         <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-56 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[100px] text-gray-300">settings_suggest</span>
+            <Settings2 size={100} className="text-gray-300" />
           </div>
           <span className="text-sm font-bold uppercase tracking-tight text-center leading-[1.1] text-gray-800 px-2">HOW ORGANIZED IS THE COMPANY AROUND THIS</span>
         </div>
         <div className="border border-gray-200 p-4 pb-6 flex flex-col items-center h-56 bg-white text-center border-l-0">
           <div className="flex-1 flex items-center justify-center">
-            <span className="material-icons text-[100px] text-gray-300">ads_click</span>
+            <FileText size={100} className="text-gray-300" />
           </div>
           <span className="text-sm font-bold uppercase tracking-tight text-gray-800 leading-tight px-4">WHAT IS THE OVERALL RESULT?</span>
         </div>

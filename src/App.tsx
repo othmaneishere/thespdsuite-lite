@@ -444,28 +444,10 @@ const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string) => void 
 };
 
 export default function App() {
-  return (
-    <ErrorBoundary>
-      <AppContent />
-    </ErrorBoundary>
-  );
-}
-
-function AppContent() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(() => {
     return localStorage.getItem('sdp_selected_group');
   });
-  const [activeTab, setActiveTab] = useState<'PESTEL' | 'McKinsey' | 'VRIO' | 'TOWS' | 'PORTER'>(() => {
-    const saved = localStorage.getItem('sdp_active_tab');
-    return (saved as any) || 'PESTEL';
-  });
-  const [activeForce, setActiveForce] = useState<keyof PortersFiveForcesData>('suppliers');
-  const [isExporting, setIsExporting] = useState(false);
-  const [isExportingAll, setIsExportingAll] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Update selected group in localStorage
   useEffect(() => {
     if (selectedGroup) {
       localStorage.setItem('sdp_selected_group', selectedGroup);
@@ -474,10 +456,36 @@ function AppContent() {
     }
   }, [selectedGroup]);
 
+  return (
+    <ErrorBoundary>
+      {selectedGroup ? (
+        <AppContent 
+          key={selectedGroup} 
+          selectedGroup={selectedGroup} 
+          onExit={() => setSelectedGroup(null)} 
+        />
+      ) : (
+        <AccessPage onSelectGroup={setSelectedGroup} />
+      )}
+    </ErrorBoundary>
+  );
+}
+
+function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: () => void }) {
+  const [activeTab, setActiveTab] = useState<'PESTEL' | 'McKinsey' | 'VRIO' | 'TOWS' | 'PORTER'>(() => {
+    const saved = localStorage.getItem(`sdp_active_tab_${selectedGroup}`);
+    return (saved as any) || 'PESTEL';
+  });
+  const [activeForce, setActiveForce] = useState<keyof PortersFiveForcesData>('suppliers');
+  const [isExporting, setIsExporting] = useState(false);
+  const [isExportingAll, setIsExportingAll] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   // Update active tab in localStorage
   useEffect(() => {
-    localStorage.setItem('sdp_active_tab', activeTab);
-  }, [activeTab]);
+    localStorage.setItem(`sdp_active_tab_${selectedGroup}`, activeTab);
+  }, [activeTab, selectedGroup]);
   
   const [pestelData, setPestelData] = useState<PESTELData[]>(
     ['Political', 'Economic', 'Social', 'Technological', 'Environmental', 'Legal'].map(cat => ({
@@ -525,7 +533,7 @@ function AppContent() {
   });
 
   const [meta, setMeta] = useState<MetaData>(() => {
-    const savedMeta = localStorage.getItem('sdp_meta');
+    const savedMeta = localStorage.getItem(`sdp_meta_${selectedGroup}`);
     return savedMeta ? JSON.parse(savedMeta) : {
       module: '',
       cohort: '',
@@ -541,7 +549,7 @@ function AppContent() {
   useEffect(() => {
     setIsLoading(true);
     try {
-      const saved = localStorage.getItem('sdp_local_data');
+      const saved = localStorage.getItem(`sdp_local_data_${selectedGroup}`);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.pestel) setPestelData(parsed.pestel);
@@ -563,7 +571,7 @@ function AppContent() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [selectedGroup]);
 
   // Debounced save to localStorage
   useEffect(() => {
@@ -584,8 +592,8 @@ function AppContent() {
       };
       
       try {
-        localStorage.setItem('sdp_local_data', JSON.stringify(currentState));
-        localStorage.setItem('sdp_meta', JSON.stringify(meta));
+        localStorage.setItem(`sdp_local_data_${selectedGroup}`, JSON.stringify(currentState));
+        localStorage.setItem(`sdp_meta_${selectedGroup}`, JSON.stringify(meta));
       } catch (err) {
         console.error('Failed to save data to localStorage:', err);
       }
@@ -594,7 +602,7 @@ function AppContent() {
     return () => {
       if (updateTimeout.current) clearTimeout(updateTimeout.current);
     };
-  }, [meta, pestelData, mckinseyData, vrioAnalysisData, vrioNotes, towsData, portersData, isLoading]);
+  }, [meta, pestelData, mckinseyData, vrioAnalysisData, vrioNotes, towsData, portersData, isLoading, selectedGroup]);
 
   const exportPDF = async () => {
     setIsExporting(true);
@@ -823,7 +831,7 @@ function AppContent() {
     );
   }
 
-  return selectedGroup ? (
+  return (
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-8 font-sans selection:bg-brand-blue/10">
       <div className="max-w-[1400px] mx-auto bg-white rounded-[32px] shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden min-h-[90vh] flex flex-col">
         {/* Top Header Row: Logo and Actions */}
@@ -841,7 +849,7 @@ function AppContent() {
             <button
               onClick={() => {
                 if (confirm('Are you sure you want to exit this session? You will return to the group selection page.')) {
-                  setSelectedGroup(null);
+                  onExit();
                 }
               }}
               className="flex items-center gap-2 px-4 py-2 text-gray-500 hover:text-blue-600 transition-all cursor-pointer font-extrabold text-[10px] uppercase tracking-[0.2em]"
@@ -1047,6 +1055,63 @@ function AppContent() {
   );
 }
 
+const MatrixCell = React.memo(({
+  score,
+  note,
+  onScoreChange,
+  onNoteChange,
+  getBgColor,
+  getTextColor
+}: {
+  score: string | number;
+  note: string;
+  onScoreChange: (val: string) => void;
+  onNoteChange: (val: string) => void;
+  getBgColor: (s: string | number) => string;
+  getTextColor: (s: string | number) => string;
+}) => {
+  return (
+    <div className={cn(
+      "border border-gray-400 h-[100px] flex flex-col transition-all duration-300 shadow-sm hover:shadow-md", 
+      getBgColor(score)
+    )}>
+      {/* Top Section: Dropdown with Custom Styling */}
+      <div className="border-b border-gray-400/30 p-1 relative group/cell">
+        <div className="relative">
+          <select
+            value={score}
+            onChange={(e) => onScoreChange(e.target.value)}
+            className={cn(
+              "w-full bg-white/40 hover:bg-white/60 transition-colors font-black text-[10px] uppercase tracking-tighter outline-none cursor-pointer py-1.5 pl-2 pr-6 appearance-none border border-black/5 rounded-md",
+              getTextColor(score)
+            )}
+          >
+            <option value="-2">Very Negative (-2)</option>
+            <option value="-1">Negative (-1)</option>
+            <option value="0">Neutral (0)</option>
+            <option value="1">Positive (+1)</option>
+            <option value="2">Very Positive (+2)</option>
+          </select>
+          <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 flex items-center">
+            <span className={cn("material-icons text-[14px]", getTextColor(score))}>expand_more</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Bottom Section: Textarea */}
+      <div className="flex-1 p-0.5">
+        <textarea
+          value={note}
+          onChange={(e) => onNoteChange(e.target.value)}
+          className="w-full h-full p-1.5 text-[10px] leading-tight bg-transparent outline-none resize-none placeholder:text-gray-400/50 font-medium focus:bg-white/30 transition-colors"
+          placeholder="Add strategic notes..."
+          rows={2}
+        />
+      </div>
+    </div>
+  );
+});
+
 const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData; setData: (d: TOWSMatrixData) => void; meta: MetaData; setMeta: (m: MetaData) => void }) => {
   const updateList = (type: 'opportunities' | 'threats' | 'strengths' | 'weaknesses', index: number, value: string) => {
     const newList = [...data[type]];
@@ -1128,63 +1193,6 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
     return 'text-gray-700';
   };
 
-  const MatrixCell = React.memo(({
-    rowType,
-    colType,
-    rIdx,
-    cIdx
-  }: {
-    rowType: 'strengths' | 'weaknesses';
-    colType: 'opportunities' | 'threats';
-    rIdx: number;
-    cIdx: number;
-    key?: string;
-  }) => {
-    const score = getScore(rowType, rIdx, colType, cIdx);
-    const note = getNote(rowType, rIdx, colType, cIdx);
-    
-    return (
-      <div className={cn(
-        "border border-gray-400 h-[100px] flex flex-col transition-all duration-300 shadow-sm hover:shadow-md", 
-        getBgColor(score)
-      )}>
-        {/* Top Section: Dropdown with Custom Styling */}
-        <div className="border-b border-gray-400/30 p-1 relative group/cell">
-          <div className="relative">
-            <select
-              value={score}
-              onChange={(e) => updateScore(rowType, rIdx, colType, cIdx, e.target.value)}
-              className={cn(
-                "w-full bg-white/40 hover:bg-white/60 transition-colors font-black text-[10px] uppercase tracking-tighter outline-hidden cursor-pointer py-1.5 pl-2 pr-6 appearance-none border border-black/5 rounded-md",
-                getTextColor(score)
-              )}
-            >
-              <option value="-2">Very Negative (-2)</option>
-              <option value="-1">Negative (-1)</option>
-              <option value="0">Neutral (0)</option>
-              <option value="1">Positive (+1)</option>
-              <option value="2">Very Positive (+2)</option>
-            </select>
-            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 flex items-center">
-              <span className={cn("material-icons text-[14px]", getTextColor(score))}>expand_more</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Bottom Section: Textarea */}
-        <div className="flex-1 p-1">
-          <textarea
-            value={note}
-            onChange={(e) => updateNote(rowType, rIdx, colType, cIdx, e.target.value)}
-            className="w-full h-full text-[10px] leading-tight bg-transparent outline-hidden resize-none placeholder:text-gray-400/50 font-medium scrollbar-hide"
-            placeholder="Add strategic notes..."
-            rows={2}
-          />
-        </div>
-      </div>
-    );
-  });
-
   return (
     <div className="bg-white p-12 rounded-xl border border-gray-100 overflow-x-auto min-w-[1100px]">
       <div className="grid grid-cols-[50px_160px_1fr_20px_1fr_100px] gap-0">
@@ -1204,11 +1212,11 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
         <div className="col-span-2" />
         <div className="grid grid-cols-3 border border-black h-36 bg-[#D9D9D9] mx-1">
           {[0, 1, 2].map(i => (
-            <div key={i} className="border-r border-black last:border-r-0 p-3 flex items-center justify-center">
+            <div key={i} className="border-r border-black last:border-r-0 p-2 flex items-center justify-center">
               <textarea
                 value={data.opportunities[i]}
                 onChange={(e) => updateList('opportunities', i, e.target.value)}
-                className="w-full h-full text-[12px] leading-tight text-center font-bold bg-transparent outline-hidden resize-none flex items-center justify-center"
+                className="w-full h-full text-[12px] leading-tight text-center font-bold bg-transparent outline-none resize-none flex items-center justify-center p-1"
                 placeholder="..."
               />
             </div>
@@ -1217,11 +1225,11 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
         <div /> {/* Gap col */}
         <div className="grid grid-cols-3 border border-black h-36 bg-[#D9D9D9] mx-1">
           {[0, 1, 2].map(i => (
-            <div key={i} className="border-r border-black last:border-r-0 p-3 flex items-center justify-center">
+            <div key={i} className="border-r border-black last:border-r-0 p-2 flex items-center justify-center">
               <textarea
                 value={data.threats[i]}
                 onChange={(e) => updateList('threats', i, e.target.value)}
-                className="w-full h-full text-[12px] leading-tight text-center font-bold bg-transparent outline-hidden resize-none flex items-center justify-center"
+                className="w-full h-full text-[12px] leading-tight text-center font-bold bg-transparent outline-none resize-none flex items-center justify-center p-1"
                 placeholder="..."
               />
             </div>
@@ -1241,7 +1249,7 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
               <textarea
                 value={data.strengths[i]}
                 onChange={(e) => updateList('strengths', i, e.target.value)}
-                className="w-full h-full text-[12px] font-bold bg-transparent outline-hidden resize-none text-center flex items-center justify-center"
+                className="w-full h-full text-[12px] font-bold bg-transparent outline-none resize-none text-center flex items-center justify-center p-1"
                 placeholder="..."
               />
             </div>
@@ -1251,14 +1259,12 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
           {[0, 1, 2].map(r => [0, 1, 2].map(c => (
             <MatrixCell 
               key={`s-o-${r}-${c}`} 
-              rowType="strengths" 
-              colType="opportunities" 
-              rIdx={r} 
-              cIdx={c} 
-              initialScore={getScore('strengths', r, 'opportunities', c)}
-              initialNote={getNote('strengths', r, 'opportunities', c)}
+              score={getScore('strengths', r, 'opportunities', c)}
+              note={getNote('strengths', r, 'opportunities', c)}
               onScoreChange={(val) => updateScore('strengths', r, 'opportunities', c, val)}
               onNoteChange={(val) => updateNote('strengths', r, 'opportunities', c, val)}
+              getBgColor={getBgColor}
+              getTextColor={getTextColor}
             />
           )))}
         </div>
@@ -1267,14 +1273,12 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
           {[0, 1, 2].map(r => [0, 1, 2].map(c => (
             <MatrixCell 
               key={`s-t-${r}-${c}`} 
-              rowType="strengths" 
-              colType="threats" 
-              rIdx={r} 
-              cIdx={c} 
-              initialScore={getScore('strengths', r, 'threats', c)}
-              initialNote={getNote('strengths', r, 'threats', c)}
+              score={getScore('strengths', r, 'threats', c)}
+              note={getNote('strengths', r, 'threats', c)}
               onScoreChange={(val) => updateScore('strengths', r, 'threats', c, val)}
               onNoteChange={(val) => updateNote('strengths', r, 'threats', c, val)}
+              getBgColor={getBgColor}
+              getTextColor={getTextColor}
             />
           )))}
         </div>
@@ -1302,18 +1306,38 @@ const TOWSWorksheet = ({ data, setData, meta, setMeta }: { data: TOWSMatrixData;
               <textarea
                 value={data.weaknesses[i]}
                 onChange={(e) => updateList('weaknesses', i, e.target.value)}
-                className="w-full h-full text-[12px] font-bold bg-transparent outline-hidden resize-none text-center flex items-center justify-center"
+                className="w-full h-full text-[12px] font-bold bg-transparent outline-none resize-none text-center flex items-center justify-center p-1"
                 placeholder="..."
               />
             </div>
           ))}
         </div>
         <div className="grid grid-cols-3 border border-black mx-1">
-          {[0, 1, 2].map(r => [0, 1, 2].map(c => <MatrixCell key={`w-o-${r}-${c}`} rowType="weaknesses" colType="opportunities" rIdx={r} cIdx={c} />))}
+          {[0, 1, 2].map(r => [0, 1, 2].map(c => (
+            <MatrixCell 
+              key={`w-o-${r}-${c}`} 
+              score={getScore('weaknesses', r, 'opportunities', c)}
+              note={getNote('weaknesses', r, 'opportunities', c)}
+              onScoreChange={(val) => updateScore('weaknesses', r, 'opportunities', c, val)}
+              onNoteChange={(val) => updateNote('weaknesses', r, 'opportunities', c, val)}
+              getBgColor={getBgColor}
+              getTextColor={getTextColor}
+            />
+          )))}
         </div>
         <div /> {/* Gap col */}
         <div className="grid grid-cols-3 border border-black mx-1">
-          {[0, 1, 2].map(r => [0, 1, 2].map(c => <MatrixCell key={`w-t-${r}-${c}`} rowType="weaknesses" colType="threats" rIdx={r} cIdx={c} />))}
+          {[0, 1, 2].map(r => [0, 1, 2].map(c => (
+            <MatrixCell 
+              key={`w-t-${r}-${c}`} 
+              score={getScore('weaknesses', r, 'threats', c)}
+              note={getNote('weaknesses', r, 'threats', c)}
+              onScoreChange={(val) => updateScore('weaknesses', r, 'threats', c, val)}
+              onNoteChange={(val) => updateNote('weaknesses', r, 'threats', c, val)}
+              getBgColor={getBgColor}
+              getTextColor={getTextColor}
+            />
+          )))}
         </div>
         <div className="flex flex-col bg-[#FCE4D6] border border-black ml-1">
           {[0, 1, 2].map(i => {

@@ -545,25 +545,20 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
   const [participants, setParticipants] = useState<string[]>([]);
   const [onlineTotal, setOnlineTotal] = useState<number>(0);
 
-  // Real-time Presence
+  // Real-time Collaboration
   useEffect(() => {
     if (!selectedGroup || !fullName) return;
 
-    // Use a unique ID for this session/tab
-    const sessionId = crypto.randomUUID();
+    // Use a unique group-specific channel
+    const channel = supabase.channel(`group:${selectedGroup}`);
 
-    const channel = supabase.channel('sdp-presence');
-
+    // Track presence so others can see us
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
-        console.log('Presence sync event received. Current state:', state);
-        
-        // Update group participants
         const groupUsers: string[] = [];
         let globalCount = 0;
 
-        // presenceState() returns { [key]: [presenceObject, ...], ... }
         Object.keys(state).forEach((key) => {
           const presences = state[key] as any[];
           presences.forEach((p) => {
@@ -573,12 +568,14 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
             }
           });
         });
-
-        console.log(`Updating participants for group ${selectedGroup}. Found ${groupUsers.length} in group, ${globalCount} total.`);
-
-        // Unique names for participants
         setParticipants([...new Set(groupUsers)]);
         setOnlineTotal(globalCount);
+      })
+      // Broadcast events for data synchronization
+      .on('broadcast', { event: 'data-update' }, ({ payload }) => {
+        // Handle incoming data updates from other users
+        if (payload.type === 'PESTEL') setPestelData(payload.data);
+        // Add other framework updates as needed
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
@@ -594,6 +591,16 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
       channel.unsubscribe();
     };
   }, [selectedGroup, fullName]);
+
+  // Function to broadcast updates
+  const broadcastUpdate = (type: string, data: any) => {
+    const channel = supabase.channel(`group:${selectedGroup}`);
+    channel.send({
+      type: 'broadcast',
+      event: 'data-update',
+      payload: { type, data },
+    });
+  };
 
   const getInitialData = () => {
     const saved = localStorage.getItem(`sdp_group_${selectedGroup}`);
@@ -635,6 +642,11 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
       potential: ''
     }));
   });
+
+  const handlePestelUpdate = (data: PESTELData[]) => {
+    setPestelData(data);
+    broadcastUpdate('PESTEL', data);
+  };
   
   const [mckinseyData, setMckinseyData] = useState<McKinsey7SData>(() => {
     return initialData?.mckinsey || {};

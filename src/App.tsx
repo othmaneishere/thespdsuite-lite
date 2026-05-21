@@ -473,7 +473,7 @@ export default function App() {
 
 function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: () => void }) {
   const [activeTab, setActiveTab] = useState<'PESTEL' | 'McKinsey' | 'VRIO' | 'TOWS' | 'PORTER'>(() => {
-    const saved = localStorage.getItem(`sdp_active_tab_${selectedGroup}`);
+    const saved = localStorage.getItem(`sdp_tab_${selectedGroup}`);
     return (saved as any) || 'PESTEL';
   });
   const [activeForce, setActiveForce] = useState<keyof PortersFiveForcesData>('suppliers');
@@ -484,7 +484,7 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
 
   // Update active tab in localStorage
   useEffect(() => {
-    localStorage.setItem(`sdp_active_tab_${selectedGroup}`, activeTab);
+    localStorage.setItem(`sdp_tab_${selectedGroup}`, activeTab);
   }, [activeTab, selectedGroup]);
   
   const [pestelData, setPestelData] = useState<PESTELData[]>(
@@ -533,8 +533,14 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
   });
 
   const [meta, setMeta] = useState<MetaData>(() => {
-    const savedMeta = localStorage.getItem(`sdp_meta_${selectedGroup}`);
-    return savedMeta ? JSON.parse(savedMeta) : {
+    const saved = localStorage.getItem(`sdp_group_${selectedGroup}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.meta) return parsed.meta;
+      } catch (e) {}
+    }
+    return {
       module: '',
       cohort: '',
       date: '',
@@ -549,7 +555,7 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
   useEffect(() => {
     setIsLoading(true);
     try {
-      const saved = localStorage.getItem(`sdp_local_data_${selectedGroup}`);
+      const saved = localStorage.getItem(`sdp_group_${selectedGroup}`);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.pestel) setPestelData(parsed.pestel);
@@ -592,8 +598,7 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
       };
       
       try {
-        localStorage.setItem(`sdp_local_data_${selectedGroup}`, JSON.stringify(currentState));
-        localStorage.setItem(`sdp_meta_${selectedGroup}`, JSON.stringify(meta));
+        localStorage.setItem(`sdp_group_${selectedGroup}`, JSON.stringify(currentState));
       } catch (err) {
         console.error('Failed to save data to localStorage:', err);
       }

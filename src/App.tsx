@@ -458,7 +458,7 @@ const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string) => void 
             <span className="text-[9px] font-mono tracking-tighter">© 2026 STRAT_PRO</span>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -544,74 +544,12 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
   const [participants, setParticipants] = useState<string[]>([]);
   const [onlineTotal, setOnlineTotal] = useState<number>(0);
 
-  // Real-time Collaboration
-  useEffect(() => {
-    if (!selectedGroup || !fullName) return;
-
-    // Use a unique group-specific channel
-    const channel = supabase.channel(`group:${selectedGroup}`);
-
-    // Track presence so others can see us
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const groupUsers: string[] = [];
-        let globalCount = 0;
-
-        Object.keys(state).forEach((key) => {
-          const presences = state[key] as any[];
-          presences.forEach((p) => {
-            globalCount++;
-            if (p.group === selectedGroup && p.fullName) {
-              groupUsers.push(p.fullName);
-            }
-          });
-        });
-        setParticipants([...new Set(groupUsers)]);
-        setOnlineTotal(globalCount);
-      })
-      // Broadcast events for data synchronization
-      .on('broadcast', { event: 'data-update' }, ({ payload }) => {
-        // Handle incoming data updates from other users
-        if (payload.pestel) setPestelData(payload.pestel);
-        if (payload.mckinsey) setMckinseyData(payload.mckinsey);
-        if (payload.vrio) setVrioAnalysisData(payload.vrio);
-        if (payload.tows) setTowsData(payload.tows);
-        if (payload.porters) setPortersData(payload.porters);
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({
-            fullName: fullName,
-            group: selectedGroup,
-            online_at: new Date().toISOString(),
-          });
-        }
-      });
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [selectedGroup, fullName]);
-
-  // Function to broadcast updates
-  const broadcastUpdate = (data: any) => {
-    const channel = supabase.channel(`group:${selectedGroup}`);
-    channel.send({
-      type: 'broadcast',
-      event: 'data-update',
-      payload: data,
-    });
-  };
-
-  // Unified state handler to update state AND broadcast
+  // Offline-only state handler
   const updateState = (
     setter: (val: any) => void,
-    data: any,
-    key: string
+    data: any
   ) => {
     setter(data);
-    broadcastUpdate({ [key]: data });
   };
 
 
@@ -656,12 +594,13 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
     }));
   });
 
-  const handlePestelUpdate = (data: PESTELData[]) => updateState(setPestelData, data, 'pestel');
-  const handleMcKinseyUpdate = (data: McKinsey7SData) => updateState(setMckinseyData, data, 'mckinsey');
-  const handleVrioUpdate = (data: VRIOAnalysisData[]) => updateState(setVrioAnalysisData, data, 'vrio');
-  const handleTowsUpdate = (data: TOWSMatrixData) => updateState(setTowsData, data, 'tows');
-  const handlePortersUpdate = (data: PortersFiveForcesData) => updateState(setPortersData, data, 'porters');
-  const handleMetaUpdate = (data: MetaData) => updateState(setMeta, data, 'meta');
+  // Local-only state handlers (offline mode)
+  const handlePestelUpdate = (data: PESTELData[]) => setPestelData(data);
+  const handleMcKinseyUpdate = (data: McKinsey7SData) => setMckinseyData(data);
+  const handleVrioUpdate = (data: VRIOAnalysisData[]) => setVrioAnalysisData(data);
+  const handleTowsUpdate = (data: TOWSMatrixData) => setTowsData(data);
+  const handlePortersUpdate = (data: PortersFiveForcesData) => setPortersData(data);
+  const handleMetaUpdate = (data: MetaData) => setMeta(data);
 
   
   const [mckinseyData, setMckinseyData] = useState<McKinsey7SData>(() => {
@@ -783,20 +722,6 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
     return () => { channel.unsubscribe(); };
   }, [selectedGroup]);
 
-  // 3. Save changes to DB (debounced)
-  const saveToDB = async (dataToSave: any) => {
-    console.log('Saving to DB for group:', selectedGroup, 'Data:', dataToSave);
-    const { error } = await supabase
-      .from('worksheets')
-      .upsert({ id: selectedGroup, data: dataToSave, updated_at: new Date().toISOString() });
-      
-    if (error) {
-      console.error('Error saving to DB:', error);
-    } else {
-      console.log('Data saved successfully');
-    }
-  };
-
   // Trigger auto-save whenever data changes
   useEffect(() => {
     const dataToSave = {
@@ -811,16 +736,6 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
     
     // Save to localStorage
     localStorage.setItem(`sdp_group_${selectedGroup}`, JSON.stringify(dataToSave));
-    
-    // Debounced DB save
-    if (updateTimeout.current) clearTimeout(updateTimeout.current);
-    updateTimeout.current = setTimeout(() => {
-      saveToDB(dataToSave);
-    }, 2000);
-
-    return () => {
-      if (updateTimeout.current) clearTimeout(updateTimeout.current);
-    };
   }, [pestelData, mckinseyData, vrioAnalysisData, vrioNotes, towsData, portersData, meta, selectedGroup]);
 
 

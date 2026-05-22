@@ -605,6 +605,17 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
     });
   };
 
+  // Unified state handler to update state AND broadcast
+  const updateState = (
+    setter: (val: any) => void,
+    data: any,
+    key: string
+  ) => {
+    setter(data);
+    broadcastUpdate({ [key]: data });
+  };
+
+
   const getInitialData = () => {
     const saved = localStorage.getItem(`sdp_group_${selectedGroup}`);
     if (saved) {
@@ -646,10 +657,13 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
     }));
   });
 
-  const handlePestelUpdate = (data: PESTELData[]) => {
-    setPestelData(data);
-    broadcastUpdate('PESTEL', data);
-  };
+  const handlePestelUpdate = (data: PESTELData[]) => updateState(setPestelData, data, 'pestel');
+  const handleMcKinseyUpdate = (data: McKinsey7SData) => updateState(setMckinseyData, data, 'mckinsey');
+  const handleVrioUpdate = (data: VRIOAnalysisData[]) => updateState(setVrioAnalysisData, data, 'vrio');
+  const handleTowsUpdate = (data: TOWSMatrixData) => updateState(setTowsData, data, 'tows');
+  const handlePortersUpdate = (data: PortersFiveForcesData) => updateState(setPortersData, data, 'porters');
+  const handleMetaUpdate = (data: MetaData) => updateState(setMeta, data, 'meta');
+
   
   const [mckinseyData, setMckinseyData] = useState<McKinsey7SData>(() => {
     return initialData?.mckinsey || {};
@@ -1204,20 +1218,20 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
                   transition={{ duration: 0.3, ease: "easeOut" }}
                 >
                   {activeTab === 'PESTEL' ? (
-                    <PESTELWorksheet data={pestelData} setData={setPestelData} />
+                    <PESTELWorksheet data={pestelData} setData={handlePestelUpdate} />
                   ) : activeTab === 'McKinsey' ? (
-                    <McKinseyWorksheet data={mckinseyData} setData={setMckinseyData} />
+                    <McKinseyWorksheet data={mckinseyData} setData={handleMcKinseyUpdate} />
                   ) : activeTab === 'VRIO' ? (
                     <div className="space-y-12">
                       <VRIOFramework />
-                      <VRIOAnalysisTable data={vrioAnalysisData} setData={setVrioAnalysisData} notes={vrioNotes} setNotes={setVrioNotes} />
+                      <VRIOAnalysisTable data={vrioAnalysisData} setData={handleVrioUpdate} notes={vrioNotes} setNotes={(n) => updateState(setVrioNotes, n, 'vrioNotes')} />
                     </div>
                   ) : activeTab === 'TOWS' ? (
                     <div className="space-y-12">
-                      <TOWSWorksheet data={towsData} setData={setTowsData} meta={meta} setMeta={setMeta} />
+                      <TOWSWorksheet data={towsData} setData={handleTowsUpdate} meta={meta} setMeta={handleMetaUpdate} />
                     </div>
                   ) : (
-                    <PortersFiveForces data={portersData} setData={setPortersData} activeForce={activeForce} setActiveForce={setActiveForce} />
+                    <PortersFiveForces data={portersData} setData={handlePortersUpdate} activeForce={activeForce} setActiveForce={setActiveForce} />
                   )}
                 </motion.div>
               </AnimatePresence>

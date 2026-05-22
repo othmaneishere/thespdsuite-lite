@@ -618,16 +618,6 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
     
     // Save to localStorage
     localStorage.setItem(`sdp_group_${selectedGroup}`, JSON.stringify(dataToSave));
-    
-    // Debounced DB save
-    if (updateTimeout.current) clearTimeout(updateTimeout.current);
-    updateTimeout.current = setTimeout(() => {
-      saveToDB(dataToSave);
-    }, 2000);
-
-    return () => {
-      if (updateTimeout.current) clearTimeout(updateTimeout.current);
-    };
   }, [pestelData, mckinseyData, vrioAnalysisData, vrioNotes, towsData, portersData, meta, selectedGroup]);
 
 
@@ -662,6 +652,7 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
               quality: 0.95,
               pixelRatio: 2,
               backgroundColor: '#ffffff',
+              filter: (node) => !(node instanceof Element && node.tagName === 'LINK' && node.getAttribute('href')?.includes('fonts.googleapis.com')),
             });
 
             if (!isFirstPage) pdf.addPage();
@@ -1021,8 +1012,7 @@ function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: 
                   ) : activeTab === 'VRIO' ? (
                     <div className="space-y-12">
                       <VRIOFramework />
-                      <VRIOAnalysisTable data={vrioAnalysisData} setData={handleVrioUpdate} notes={vrioNotes} setNotes={(n) => updateState(setVrioNotes, n, 'vrioNotes')} />
-                    </div>
+                      <VRIOAnalysisTable data={vrioAnalysisData} setData={handleVrioUpdate} notes={vrioNotes} setNotes={setVrioNotes} />                    </div>
                   ) : activeTab === 'TOWS' ? (
                     <div className="space-y-12">
                       <TOWSWorksheet data={towsData} setData={handleTowsUpdate} meta={meta} setMeta={handleMetaUpdate} />

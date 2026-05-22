@@ -404,13 +404,12 @@ const McKinseyWorksheet = ({ data, setData }: { data: McKinsey7SData; setData: (
   );
 };
 
-const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string, fullName: string) => void }) => {
+const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string) => void }) => {
   const [selectedValue, setSelectedValue] = useState('');
-  const [fullName, setFullName] = useState('');
 
   const handleContinue = () => {
-    if (selectedValue && fullName.trim()) {
-      onSelectGroup(selectedValue, fullName.trim());
+    if (selectedValue) {
+      onSelectGroup(selectedValue);
     }
   };
 
@@ -418,7 +417,6 @@ const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string, fullName
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
-          {/* Logo */}
           <div className="flex justify-center mb-8">
             <img 
               src="https://i.ibb.co/FqgQzNPw/LOGO-BLEU.png" 
@@ -428,31 +426,13 @@ const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string, fullName
               title="Welcome to Strategic Suite Access"
             />
           </div>
-
-          {/* Title */}
           <h1 className="text-3xl font-black text-gray-900 text-center mb-2 tracking-tight">
             Strategic Suite Access
           </h1>
           <p className="text-center text-gray-600 text-sm mb-8">
             Select your group to access the dashboard
           </p>
-
-          {/* Form */}
           <div className="space-y-6">
-            <div>
-              <label htmlFor="full-name" className="block text-sm font-bold uppercase tracking-tight text-gray-900 mb-3">
-                Full Name
-              </label>
-              <input
-                id="full-name"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Enter your full name"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl font-semibold text-gray-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all bg-white hover:border-gray-300"
-              />
-            </div>
-
             <div>
               <label htmlFor="group-select" className="block text-sm font-bold uppercase tracking-tight text-gray-900 mb-3">
                 Select Group
@@ -471,17 +451,14 @@ const AccessPage = ({ onSelectGroup }: { onSelectGroup: (group: string, fullName
                 ))}
               </select>
             </div>
-
             <button
               onClick={handleContinue}
-              disabled={!selectedValue || !fullName.trim()}
+              disabled={!selectedValue}
               className="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-xl transition-all shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 cursor-pointer uppercase tracking-tight"
             >
               Continue to Dashboard
             </button>
           </div>
-
-          {/* Footer */}
           <p className="text-center text-xs text-gray-400 mt-8 font-mono tracking-widest">
             SDP_ACCESS_V1.0
           </p>
@@ -496,10 +473,6 @@ export default function App() {
     return localStorage.getItem('sdp_selected_group');
   });
 
-  const [fullName, setFullName] = useState<string>(() => {
-    return localStorage.getItem('sdp_full_name') || '';
-  });
-
   useEffect(() => {
     if (selectedGroup) {
       localStorage.setItem('sdp_selected_group', selectedGroup);
@@ -508,16 +481,7 @@ export default function App() {
     }
   }, [selectedGroup]);
 
-  useEffect(() => {
-    if (fullName) {
-      localStorage.setItem('sdp_full_name', fullName);
-    } else {
-      localStorage.removeItem('sdp_full_name');
-    }
-  }, [fullName]);
-
-  const handleSelectGroup = (group: string, name: string) => {
-    setFullName(name);
+  const handleSelectGroup = (group: string) => {
     setSelectedGroup(group);
   };
 
@@ -527,10 +491,8 @@ export default function App() {
         <AppContent 
           key={selectedGroup} 
           selectedGroup={selectedGroup} 
-          fullName={fullName}
           onExit={() => {
             setSelectedGroup(null);
-            setFullName('');
           }} 
         />
       ) : (
@@ -544,64 +506,12 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
   const [participants, setParticipants] = useState<string[]>([]);
   const [onlineTotal, setOnlineTotal] = useState<number>(0);
 
-  // Real-time Collaboration
+  // Real-time Collaboration removed
   useEffect(() => {
-    if (!selectedGroup || !fullName) return;
-
-    // Use a unique group-specific channel
-    const channel = supabase.channel(`group:${selectedGroup}`);
-
-    // Track presence so others can see us
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const groupUsers: string[] = [];
-        let globalCount = 0;
-
-        Object.keys(state).forEach((key) => {
-          const presences = state[key] as any[];
-          presences.forEach((p) => {
-            globalCount++;
-            if (p.group === selectedGroup && p.fullName) {
-              groupUsers.push(p.fullName);
-            }
-          });
-        });
-        setParticipants([...new Set(groupUsers)]);
-        setOnlineTotal(globalCount);
-      })
-      // Broadcast events for data synchronization
-      .on('broadcast', { event: 'data-update' }, ({ payload }) => {
-        // Handle incoming data updates from other users
-        if (payload.pestel) setPestelData(payload.pestel);
-        if (payload.mckinsey) setMckinseyData(payload.mckinsey);
-        if (payload.vrio) setVrioAnalysisData(payload.vrio);
-        if (payload.tows) setTowsData(payload.tows);
-        if (payload.porters) setPortersData(payload.porters);
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({
-            fullName: fullName,
-            group: selectedGroup,
-            online_at: new Date().toISOString(),
-          });
-        }
-      });
-
-    return () => {
-      channel.unsubscribe();
-    };
   }, [selectedGroup, fullName]);
 
-  // Function to broadcast updates
   const broadcastUpdate = (data: any) => {
-    const channel = supabase.channel(`group:${selectedGroup}`);
-    channel.send({
-      type: 'broadcast',
-      event: 'data-update',
-      payload: data,
-    });
+    // Online features removed
   };
 
   // Unified state handler to update state AND broadcast
@@ -728,74 +638,10 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
 
   const updateTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Refactored Real-time Sync using Supabase Database
+  // Persistence handled locally
   useEffect(() => {
-    if (!selectedGroup) return;
-
-    // 1. Fetch initial data from DB
-    const fetchData = async () => {
-      console.log('Fetching initial data for group:', selectedGroup);
-      const { data, error } = await supabase
-        .from('worksheets')
-        .select('data')
-        .eq('id', selectedGroup);
-      
-      if (error) {
-        console.error('Error fetching initial data:', error);
-      } else if (data && data.length > 0) {
-        console.log('Data fetched successfully:', data[0]);
-        const parsed = data[0].data;
-        if (parsed.pestel) setPestelData(parsed.pestel);
-        if (parsed.mckinsey) setMckinseyData(parsed.mckinsey);
-        if (parsed.vrio) setVrioAnalysisData(parsed.vrio);
-        if (parsed.tows) setTowsData(parsed.tows);
-        if (parsed.porters) setPortersData(parsed.porters);
-      } else {
-        console.log('No existing data found for group:', selectedGroup, 'Starting with empty state.');
-      }
-    };
-    fetchData();
-
-    // 2. Subscribe to real-time changes
-    console.log('Subscribing to real-time changes for group:', selectedGroup);
-    const channel = supabase
-      .channel('db-changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'worksheets',
-        filter: `id=eq.${selectedGroup}`
-      }, (payload) => {
-        if (payload.new && payload.new.data) {
-          console.log('Updating local state with new data...');
-          const newData = payload.new.data;
-          if (newData.pestel) setPestelData(newData.pestel);
-          if (newData.mckinsey) setMckinseyData(newData.mckinsey);
-          if (newData.vrio) setVrioAnalysisData(newData.vrio);
-          if (newData.tows) setTowsData(newData.tows);
-          if (newData.porters) setPortersData(newData.porters);
-        }
-      })
-      .subscribe((status) => {
-        console.log('Subscription status:', status);
-      });
-
-    return () => { channel.unsubscribe(); };
-  }, [selectedGroup]);
-
-  // 3. Save changes to DB (debounced)
-  const saveToDB = async (dataToSave: any) => {
-    console.log('Saving to DB for group:', selectedGroup, 'Data:', dataToSave);
-    const { error } = await supabase
-      .from('worksheets')
-      .upsert({ id: selectedGroup, data: dataToSave, updated_at: new Date().toISOString() });
-      
-    if (error) {
-      console.error('Error saving to DB:', error);
-    } else {
-      console.log('Data saved successfully');
-    }
-  };
+    console.log('Persistence handled locally by localStorage.');
+  }, []);
 
   // Trigger auto-save whenever data changes
   useEffect(() => {

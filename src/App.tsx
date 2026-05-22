@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, Component, ErrorInfo, ReactNode } from 're
 import React from 'react';
 import { FileText, Settings2, Network, Files, ChevronDown, LogOut, Trash2, BookOpen, Database, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { supabase } from './lib/supabase';
 
 // Error Boundary Component for stability
 class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}> {

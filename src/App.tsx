@@ -667,59 +667,9 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
 
   const updateTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Refactored Real-time Sync using Supabase Database
+  // Persistence handled locally
   useEffect(() => {
-    if (!selectedGroup) return;
-
-    // 1. Fetch initial data from DB
-    const fetchData = async () => {
-      console.log('Fetching initial data for group:', selectedGroup);
-      const { data, error } = await supabase
-        .from('worksheets')
-        .select('data')
-        .eq('id', selectedGroup);
-      
-      if (error) {
-        console.error('Error fetching initial data:', error);
-      } else if (data && data.length > 0) {
-        console.log('Data fetched successfully:', data[0]);
-        const parsed = data[0].data;
-        if (parsed.pestel) setPestelData(parsed.pestel);
-        if (parsed.mckinsey) setMckinseyData(parsed.mckinsey);
-        if (parsed.vrio) setVrioAnalysisData(parsed.vrio);
-        if (parsed.tows) setTowsData(parsed.tows);
-        if (parsed.porters) setPortersData(parsed.porters);
-      } else {
-        console.log('No existing data found for group:', selectedGroup, 'Starting with empty state.');
-      }
-    };
-    fetchData();
-
-    // 2. Subscribe to real-time changes
-    console.log('Subscribing to real-time changes for group:', selectedGroup);
-    const channel = supabase
-      .channel('db-changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'worksheets',
-        filter: `id=eq.${selectedGroup}`
-      }, (payload) => {
-        if (payload.new && payload.new.data) {
-          console.log('Updating local state with new data...');
-          const newData = payload.new.data;
-          if (newData.pestel) setPestelData(newData.pestel);
-          if (newData.mckinsey) setMckinseyData(newData.mckinsey);
-          if (newData.vrio) setVrioAnalysisData(newData.vrio);
-          if (newData.tows) setTowsData(newData.tows);
-          if (newData.porters) setPortersData(newData.porters);
-        }
-      })
-      .subscribe((status) => {
-        console.log('Subscription status:', status);
-      });
-
-    return () => { channel.unsubscribe(); };
+    // Sync logic removed
   }, [selectedGroup]);
 
   // Trigger auto-save whenever data changes

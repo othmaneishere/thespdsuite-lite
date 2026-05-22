@@ -1,4 +1,4 @@
-import { cn } from '@/src/lib/utils';
+import { cn } from '../lib/utils';
 import { PESTELData, McKinsey7SData, VRIOAnalysisData, TOWSMatrixData, PortersFiveForcesData } from '../types';
 
 export const PESTELWorksheet = ({ data, setData }: { data: PESTELData[]; setData: (d: PESTELData[]) => void }) => {

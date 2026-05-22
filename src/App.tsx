@@ -484,29 +484,8 @@ export default function App() {
   );
 }
 
-function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string; fullName: string; onExit: () => void }) {
-  const [participants, setParticipants] = useState<string[]>([]);
-  const [onlineTotal, setOnlineTotal] = useState<number>(0);
-
-  // Real-time Collaboration removed
-  useEffect(() => {
-  }, [selectedGroup, fullName]);
-
-  const broadcastUpdate = (data: any) => {
-    // Online features removed
-  };
-
-  // Unified state handler to update state AND broadcast
-  const updateState = (
-    setter: (val: any) => void,
-    data: any,
-    key: string
-  ) => {
-    setter(data);
-    broadcastUpdate({ [key]: data });
-  };
-
-
+function AppContent({ selectedGroup, onExit }: { selectedGroup: string; onExit: () => void }) {
+  
   const getInitialData = () => {
     const saved = localStorage.getItem(`sdp_group_${selectedGroup}`);
     if (saved) {
@@ -883,13 +862,6 @@ function AppContent({ selectedGroup, fullName, onExit }: { selectedGroup: string
               crossOrigin="anonymous"
               title="Welcome to Strategic Suite Access"
             />
-            {/* Online Indicator */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-full border border-green-100">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] font-black text-green-700 uppercase tracking-wider">
-                {onlineTotal} Online Users
-              </span>
-            </div>
           </div>
 
           <div className="flex items-center gap-3">
